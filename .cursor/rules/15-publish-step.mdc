@@ -1,0 +1,51 @@
+---
+description: Publish step — Cloudflare Pages deploy, deploy.json, smoke checks. Milestone 4; scaffold rule now.
+globs:
+  - "src/steps/publish/**"
+alwaysApply: false
+---
+
+# Publish Step
+
+## Applies when
+
+Editing `src/steps/publish/` — deploy demo build after Design stage (milestone 4).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`deploy.json`), §14 G5, §10 (`deploy-cloudflare` skill).
+- Level A `03-pipeline-gates` (G5 policy).
+- Level A `02-llm-invariants` (deploy is code, not LLM).
+
+## Required behavior
+
+- **Entry**: `runPublish(leadDir, buildDir): Promise<string>` — returns path to `deploy.json`.
+- **Input**: `leads/{id}/design/dist/` (static build from Design stage).
+- **Deploy**: Cloudflare Pages API or CLI wrapper; URL pattern per project config; write `demo_url` to `deploy.json`.
+- **deploy.json**: `{ schema_version, demo_url, checks: { http_200, lighthouse_perf, no_console_errors } }`.
+- **Post-deploy smoke** (G5): verify `demo_url` returns 200, no console errors (Playwright), Lighthouse perf ≥ threshold from config.
+- **Secrets**: `CLOUDFLARE_API_TOKEN`, account/project IDs via env only — never committed.
+- **On fail**: return error to orchestrator for re-deploy retry per G5.
+- **State**: `publish.status`, `artifact: deploy.json`, `cost: 0`.
+
+## Forbidden behavior
+
+- Do not deploy without valid `design/dist` directory.
+- Do not hardcode API tokens or account IDs.
+- Do not use LLM for deploy decisions.
+- Do not skip G5 smoke after deploy.
+- Do not implement in Foundation milestone — stub/placeholder OK until milestone 4.
+
+## Output requirements
+
+- Valid `deploy.json` per schema (when `deploy.schema.json` exists).
+- `demo_url` publicly reachable after successful publish.
+- G5 checks recorded in `deploy.json.checks`.
+
+## Verification checklist
+
+- [ ] `deploy.json` validates against schema.
+- [ ] `demo_url` returns HTTP 200.
+- [ ] G5 smoke passes before `publish.status = done`.
+- [ ] No secrets in repo or artifacts.
+- [ ] Stub module compiles if full deploy not yet implemented (milestone 4).

@@ -1,0 +1,57 @@
+---
+description: Copy Agent — niche demo copy in content.json slots. Milestone 3.
+globs:
+  - "agents/copy/**"
+alwaysApply: false
+---
+
+# Copy Agent
+
+## Applies when
+
+Editing `agents/copy/` or running Copy stage (after G2 pass).
+
+Not for `.cursor/agents/` — pipeline agent only (PRD `agents/copy/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`content.json`), §9.2, §14 G3, §15, §19.3.
+- [context/verticals/*.md](context/verticals/), [context/tone-of-voice.md](context/tone-of-voice.md) when present.
+- Schema: `schemas/content.schema.json`.
+- Input: `audit.json` OR `research.json` (personalization_source).
+
+## Required behavior
+
+- **Reads**: `leads/{id}/audit.json` OR `research.json`, one matching `context/verticals/{vertical}.md`, `context/tone-of-voice.md`. No screenshots, no full capture HTML.
+- **Writes**: `leads/{id}/content.json` only.
+- **Sections required**: `hero` (headline, subheadline, cta), `benefits[]`, `social_proof`, `contact` (phone, cta) per PRD §7.2.
+- **reuse_facts**: populate from capture/audit/research real business data — services, geo, phone from `lead.json`.
+- **CTA**: mandatory in hero and contact; action-oriented Russian.
+- **vertical**: set from lead category / audit context / vertical template name.
+- **Gate G3**: all sections filled, CTA present, Russian.
+
+## When user requests forbidden pattern
+
+- «Generic AI copy без фактов» → refuse; must use `reuse_facts` from inputs.
+- «Пиши на английском» → refuse unless user explicitly overrides `02-llm-invariants`.
+- «Добавь секцию без схемы» → refuse; `01-contract-first`.
+
+## Forbidden behavior
+
+- Do not use clichés («инновационные решения», «индивидуальный подход») without business-specific facts.
+- Do not invent prices, reviews, or case studies not in inputs.
+- Do not read `design/*` or write demo HTML/CSS.
+- Do not skip personalization_source — copy must reflect this lead.
+
+## Output requirements
+
+- Valid `content.json` with `schema_version`.
+- Text slots only — Design agent maps to templates.
+
+## Verification checklist
+
+- [ ] All required sections present.
+- [ ] CTA in hero and contact.
+- [ ] Russian, niche-specific, facts from inputs.
+- [ ] Passes `content.schema.json`.
+- [ ] G3 pass before Design.

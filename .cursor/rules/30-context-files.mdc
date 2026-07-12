@@ -1,0 +1,71 @@
+---
+description: Static context files — long-lived expertise in context/. Not regenerated at runtime. Milestones 2–5.
+globs:
+  - "context/**"
+alwaysApply: false
+---
+
+# Context Files
+
+## Applies when
+
+Editing any file under `context/` — static expertise consumed by pipeline agents.
+
+For `context/design-system/` and `context/verticals/` — also see `31-design-system`, `32-vertical-templates` (deeper rules).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §11 (context files), §15 (who reads what).
+- Level A: `01-contract-first` (no runtime state in context), `02-llm-invariants` (static only, no runtime generation).
+- Consumers: C `21-agent-audit`, C `22-agent-copy`, C `25-agent-offer` (read); D2/D3 for design context.
+
+## Required behavior
+
+- **Static memory**: expertise maintained in repo — not regenerated per lead at pipeline runtime.
+- **PRD §11 files**:
+  - `context/positioning.md` — your positioning, audience, service offer (Offer, Copy)
+  - `context/portfolio.json` — cases, links to past work (Offer)
+  - `context/audit-framework.md` — checklist: trust, speed, mobile, CTA, social proof (Audit)
+  - `context/tone-of-voice.md` — style rules for client text (Audit, Copy, Offer)
+  - `context/pricing.md` — tariffs/packages (Offer)
+  - `context/design-system/`, `context/verticals/` — see D2/D3
+- **`portfolio.json`**: only JSON in `context/`; valid structure; real, resolvable URLs only.
+- **Language**: client-facing text in context — Russian, business tone.
+- **Milestone map**:
+  - Milestone 2: `audit-framework.md`, `tone-of-voice.md`
+  - Milestone 3: design-system + verticals (D2/D3)
+  - Milestone 5: `positioning.md`, `portfolio.json`, `pricing.md`
+- **Read-only at runtime**: agents read context; they do not write or mutate `context/` during pipeline runs.
+
+## When user requests forbidden pattern
+
+- «Сгенерируй context на лету в pipeline» → stop; `02-llm-invariants` (static files only).
+- «Сгенерируй tone-of-voice в pipeline для каждого лида» → **stop immediately**; do not implement.
+  - Do **not** reinterpret as «создам статический гайд + поле `tone` в audit.json» and proceed — that still violates the request.
+  - Do **not** create `leads/{id}/tone-of-voice.md`, overwrite `context/tone-of-voice.md` per run, or add a new pipeline stage for tone generation.
+  - Allowed without this request: PRD §7.2 `tone` string inside `audit.json` during normal Audit stage (reads static `context/tone-of-voice.md`) — that is not a per-lead tone-of-voice **file** or context regeneration.
+  - Offer: edit `context/tone-of-voice.md` manually in repo, or configure Audit agent for existing `tone` field — only if user asks after refuse.
+- «Положи lead-specific данные в context/» → stop; lead data belongs in `leads/{id}/` only.
+- «Добавь поле в portfolio без согласования» → stop; JSON structure changes need PRD + schema agreement (`01-contract-first`).
+- «Сохрани audit findings в context/» → stop; artifacts stay in `leads/{id}/audit.json`.
+
+## Forbidden behavior
+
+- Do not store runtime state, `lead_id`, or per-lead facts in `context/`.
+- Do not invent portfolio URLs or case studies.
+- Do not duplicate `leads/` contract artifacts inside `context/`.
+- Do not generate context files during pipeline execution — edit repo files explicitly.
+- Do not put English client copy unless user requests.
+
+## Output requirements
+
+- Markdown/JSON files under `context/` — versioned in git, not in `leads/`.
+- Each file self-contained for its consumer agents per PRD §11.
+
+## Verification checklist
+
+- [ ] No `lead_id` or lead-specific names in shared context files.
+- [ ] Portfolio links are real and tested.
+- [ ] Files created per milestone map (not all at once in Foundation).
+- [ ] Russian, business tone for client-facing content.
+- [ ] Agents read-only at runtime — no pipeline writes to `context/`.

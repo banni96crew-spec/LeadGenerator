@@ -1,0 +1,54 @@
+---
+description: Design-Critic — visual QA on preview screenshots for G4. Read-only. Milestone 3.
+globs:
+  - "agents/design-critic/**"
+alwaysApply: false
+---
+
+# Design-Critic Agent
+
+## Applies when
+
+Editing `agents/design-critic/` or running G4 LLM critic (after Design previews exist).
+
+Not for `.cursor/agents/` — pipeline agent only (`agents/design-critic/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §14 G4 (Design-Critic), §19.3.
+- Level A `02-llm-invariants` (judgment OK; no artifact mutation).
+
+## Required behavior
+
+- **Reads**: `design/preview-desktop.png`, `design/preview-mobile.png`, `design/build.json` (metadata only). No source code review as primary input.
+- **Writes**: `leads/{id}/design/critic.json` OR structured result for gate — `{ pass, gate: "G4", scores, notes[] }`.
+- **Question**: «Выглядит ли это как сайт, который владелец бизнеса захочет купить?»
+- **Rubric** (score 1–5 each, pass if all ≥4):
+  - `trust` — looks legitimate, not scam/template-farm
+  - `modern` — contemporary, not dated 2010 layout
+  - `sellable` — owner would want this for their business
+  - `readable` — text legible on mobile and desktop
+- **Read-only**: do not edit `design/dist/`, `content.json`, or templates.
+- **On fail**: return specific notes for Design retry or template swap.
+
+## When user requests forbidden pattern
+
+- «Пропусти critic» → refuse; G4 requires critic per `03-pipeline-gates`.
+- «Правь CSS напрямую» → refuse; return notes to Design agent only.
+
+## Forbidden behavior
+
+- Do not modify design files.
+- Do not approve generic AI-template look without noting it.
+- Do not use LLM for code-level gate checks (console errors = code G4).
+
+## Output requirements
+
+- Structured critic result with `pass: boolean` and actionable `notes[]` in Russian.
+
+## Verification checklist
+
+- [ ] Evaluated both preview PNGs.
+- [ ] Rubric scores recorded.
+- [ ] No files in `design/dist/` modified.
+- [ ] Result consumed by G4 gate.

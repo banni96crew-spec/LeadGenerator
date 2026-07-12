@@ -1,0 +1,55 @@
+---
+description: Quality gate implementation — ajv validate.ts, GateResult, g1Capture.ts, read-only checks.
+globs:
+  - "src/gates/**"
+alwaysApply: false
+---
+
+# Gates Code
+
+## Applies when
+
+Editing `src/gates/` — schema validation helper and per-gate check modules.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §14 (G1–G6 policy).
+- Level A `03-pipeline-gates` (thresholds, retry, fail policy).
+- Level A `01-contract-first` (when to validate).
+- Foundation: `validate.ts`, `g1Capture.ts`.
+
+## Required behavior
+
+- **`validate.ts`**: single ajv instance + `ajv-formats`; `assertValid(data, schemaName)` throws or returns errors with JSON path; compile schemas once at startup.
+- **Gate modules**: one file per gate or `g1Capture.ts`, `g2Audit.ts`, etc.; export `runGateG1(ctx): GateResult` pattern.
+- **Read-only**: gates inspect artifacts on disk; never mutate input files or `state.json` directly — return result to orchestrator.
+- **G1 implementation** (Foundation):
+  - Validate `capture/meta.json` against `capture-meta.schema.json`.
+  - `http_status === 200`.
+  - Screenshots exist, size > 5120 bytes, dimensions > 0.
+  - `text.txt` length ≥ 200 characters.
+- **GateResult**: always `{ pass, gate, errors[], warnings? }`; errors human-readable with file paths.
+- **Diagnostics on fail**: include `lead_id`, `stage`, `gate`, artifact path, specific reason.
+- **No LLM in gates code** except future thin wrappers for G2/G4/G6 critic — not in Foundation.
+- **Orchestrator integration**: pipeline calls gate after stage; on `!pass` orchestrator handles retry counting.
+
+## Forbidden behavior
+
+- Do not advance pipeline from inside gate module.
+- Do not weaken G1 thresholds (5KB, 200 chars) without PRD update.
+- Do not skip schema validation before tech checks.
+- Do not import Playwright in gate modules (file-system checks only for G1).
+- Do not catch and swallow validation errors.
+
+## Output requirements
+
+- `runGateG1` returns `pass: true` only when all G1 checks satisfied per `03-pipeline-gates`.
+- Unit tests: happy path, empty screenshot, short text, invalid schema (when test scaffold exists).
+
+## Verification checklist
+
+- [ ] `assertValid` returns path-qualified errors.
+- [ ] G1 fails on missing/empty screenshot and short text.
+- [ ] G1 passes on valid Foundation capture output.
+- [ ] Gate modules are read-only.
+- [ ] No LLM imports in `src/gates/`.

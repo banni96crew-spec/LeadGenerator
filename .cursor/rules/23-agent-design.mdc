@@ -1,0 +1,58 @@
+---
+description: Design Agent — assemble demo site from design-system + vertical template. Writes design/*. Milestone 3.
+globs:
+  - "agents/design/**"
+alwaysApply: false
+---
+
+# Design Agent
+
+## Applies when
+
+Editing `agents/design/` or running Design stage (after G3 pass).
+
+Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`design/build.json`), §9.2, §14 G4, §15, §19.3.
+- [context/design-system/](context/design-system/), [context/verticals/*.md](context/verticals/).
+- Schema: `schemas/design-build.schema.json` when present.
+- Level A `01-contract-first`.
+
+## Required behavior
+
+- **Reads**: `content.json`, `context/design-system/*`, one vertical template, `capture/logo.png` (if exists) for brand tokens.
+- **Writes**: `leads/{id}/design/dist/` (static build), `design/build.json`, triggers `preview-desktop.png` + `preview-mobile.png` (via render-preview skill/step).
+- **Assembly only**: map `content.json` slots into template — do NOT generate arbitrary CSS/layout from scratch.
+- **brand_tokens**: from capture logo + design-system defaults (`primary`, `font`, `logo` path).
+- **template**: name recorded in `build.json` (e.g. `renovation-v2`).
+- **Responsive**: mobile + desktop; no horizontal overflow.
+- **Real assets**: reuse client logo/photos from `capture/` when available.
+- **Gate G4**: build succeeds, previews exist, 0 console errors, then Design-Critic.
+
+## When user requests forbidden pattern
+
+- «Сгенерируй уникальный CSS с нуля» → refuse; design-system + vertical only.
+- «React/Next demo» → refuse; static HTML per `00-project-overview`.
+- «Пропусти preview screenshots» → refuse; G4 requires previews.
+
+## Forbidden behavior
+
+- Do not write free-form SPA/framework demo.
+- Do not ignore `content.json` slot structure.
+- Do not read `audit.json` arguments — only `content.json` + design context.
+- Do not publish — Publish step is code (milestone 4).
+
+## Output requirements
+
+- `design/dist/` static site ready for Cloudflare.
+- `design/build.json` with `build_dir`, `screens`, `template`, `brand_tokens`.
+
+## Verification checklist
+
+- [ ] Built from design-system + vertical template.
+- [ ] `content.json` slots populated in UI.
+- [ ] Client logo/assets reused when present.
+- [ ] Previews rendered for Design-Critic.
+- [ ] G4 code checks pass before critic.

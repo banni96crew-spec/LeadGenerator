@@ -1,0 +1,52 @@
+---
+description: JSON Schema authoring rules for pipeline contracts — versioning, additionalProperties, naming.
+globs:
+  - "schemas/**"
+alwaysApply: false
+---
+
+# JSON Schemas
+
+## Applies when
+
+Creating or editing files in `schemas/`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (contract shapes), §8 (artifact paths).
+- Foundation plan: `lead.schema.json`, `state.schema.json`, `capture-meta.schema.json`.
+- Level A `01-contract-first` (validation policy).
+
+## Required behavior
+
+- **File naming**: `{contract}.schema.json` (e.g. `lead.schema.json`, `capture-meta.schema.json`).
+- **Every schema**: top-level `schema_version` property (const `"1.0"` until bump); `$schema` draft-07 URL.
+- **Strictness**: `additionalProperties: false` on all objects except `lead.raw` (explicitly open object if needed).
+- **Required fields**: mark truly required fields only; optional fields omitted from `required` array.
+- **Formats**: use `ajv-formats` types (`uri`, `date-time`) where applicable.
+- **Paths in schemas**: string fields for artifact paths use relative path description in `description`, not absolute.
+- **Stage status enum**: `pending | running | done | skipped | failed` in `state.schema.json`.
+- **Branch enum**: `has_website | no_website` in `state.schema.json`.
+- **Version bump**: changing breaking shape → increment `schema_version` + update consumers in same PR/task.
+- **Registry**: `src/gates/validate.ts` maps schema name → file; adding schema requires registry entry.
+
+## Forbidden behavior
+
+- Do not add fields to schemas without PRD/contract agreement.
+- Do not use loose `type: object` without `properties` for pipeline contracts.
+- Do not duplicate contract definitions in TS without mirroring schema.
+- Do not embed example data as defaults in schema.
+- Do not validate in schema what gates check (file size, HTTP) — keep schema structural only.
+
+## Output requirements
+
+- Each schema validates its PRD example payload.
+- `npm run validate-schemas` or unit test compiles all schemas with ajv (when implemented).
+
+## Verification checklist
+
+- [ ] `schema_version` present and const.
+- [ ] `additionalProperties: false` (except documented exceptions).
+- [ ] Required enums match PRD (`branch`, `status`).
+- [ ] New schema registered in `validate.ts`.
+- [ ] Example from PRD §7.2 validates successfully.

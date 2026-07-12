@@ -1,0 +1,189 @@
+---
+description: Use this rule when the user asks to create, update, split, audit, organize, or improve Cursor Rules for this project. Apply it when working with .cursor/rules/*.mdc, project conventions, LLM agent behavior, coding standards, architecture rules, PRD compliance rules, or implementation workflow rules.
+alwaysApply: false
+---
+
+# Cursor Rule Creator
+
+## Purpose
+
+Help create high-quality Cursor Project Rules for this repository.
+
+Cursor Rules must reduce repeated prompting, prevent LLM agent mistakes, and make generated code match the project's PRD, architecture, naming, file structure, and implementation order.
+
+## Source of truth order
+
+When creating or updating rules, use this priority:
+
+1. [PRD.md](PRD.md) — architecture, agents, contracts, gates, milestones.
+2. User's direct instruction in the current prompt, only when it does not conflict with the PRD.
+3. Existing `.cursor/rules/*.mdc` (especially `00-project-overview`, `01-contract-first`, `02-llm-invariants`, `03-pipeline-gates`).
+4. [CONVENTIONS.md](CONVENTIONS.md) when present.
+5. Existing project code and folder structure.
+6. General best practices.
+
+The PRD is the highest project authority and must not be overridden by a user request, roadmap, skill, existing rule, or code.
+
+If a user request conflicts with the PRD:
+
+1. Stop rule generation or editing.
+2. State the exact conflicting instruction and PRD requirement.
+3. Ask the user to resolve the conflict by revising the request or explicitly requesting PRD maintenance.
+4. Do not invent a compromise and do not continue until the conflict is resolved.
+
+If PRD sections conflict with each other, stop and ask for PRD correction. Do not choose a winner by preference.
+
+## Rule creation workflow
+
+When asked to create or improve Cursor Rules:
+
+1. Inspect existing `.cursor/rules/`.
+2. Identify whether the requested rule already exists.
+3. Update existing rules instead of creating duplicates.
+4. Create a new rule only when the behavior is not already covered.
+5. Keep every rule focused on one responsibility.
+6. Prefer several small rules over one huge rule.
+7. Do not copy large documentation into rules.
+8. Put long references in separate docs and link to them from the rule.
+9. Make rules actionable, specific, and testable.
+10. Include clear forbidden behavior when needed.
+
+## Rule types
+
+### Always rule
+
+Use only for project-wide rules that must affect every agent task.
+
+Frontmatter:
+
+```yaml
+---
+description: ""
+alwaysApply: true
+---
+```
+
+Use for: project identity, source of truth, global coding constraints, non-negotiable architecture rules.
+
+Keep always rules short.
+
+### Auto-attached rule
+
+Use when the rule applies to specific files.
+
+Frontmatter:
+
+```yaml
+---
+description: ""
+globs:
+  - "src/**/*.ts"
+alwaysApply: false
+---
+```
+
+Use for: orchestrator, capture/publish steps, gates, agent definitions, schemas, tests, context files.
+
+### Agent-requested rule
+
+Use when the agent should decide based on task meaning.
+
+Frontmatter:
+
+```yaml
+---
+description: "Use when implementing, modifying, auditing, or testing [specific feature/module]."
+alwaysApply: false
+---
+```
+
+Use for: implementation workflows, audits, refactors, PRD compliance checks, feature-specific logic.
+
+### Manual rule
+
+Use when the user should explicitly call the rule.
+
+Frontmatter:
+
+```yaml
+---
+description: ""
+alwaysApply: false
+---
+```
+
+Use for: one-off audit workflows, release checklists, migration procedures, big review passes.
+
+## Rule file naming
+
+Use this naming style:
+
+```
+.cursor/rules/00-project-overview.mdc
+.cursor/rules/01-contract-first.mdc
+.cursor/rules/02-llm-invariants.mdc
+.cursor/rules/03-pipeline-gates.mdc
+.cursor/rules/10-orchestrator.mdc
+.cursor/rules/20-agent-research.mdc
+.cursor/rules/21-agent-audit.mdc
+.cursor/rules/22-agent-copy.mdc
+.cursor/rules/23-agent-design.mdc
+.cursor/rules/24-agent-design-critic.mdc
+.cursor/rules/25-agent-offer.mdc
+.cursor/rules/30-context-files.mdc
+.cursor/rules/31-design-system.mdc
+.cursor/rules/32-vertical-templates.mdc
+.cursor/rules/33-demo-site-output.mdc
+.cursor/rules/90-implementation-workflow.mdc
+```
+
+Use numeric prefixes to make reading order obvious. Global always rules: `00–03`. Code infra: `10–15`. LLM agents: `20–25`. Content/demo: `30–33`.
+
+## Rule body format
+
+Every rule should use this structure when possible:
+
+```markdown
+# Rule name
+
+## Applies when
+## Source of truth
+## Required behavior
+## Forbidden behavior
+## Output requirements
+## Verification checklist
+```
+
+## Quality checklist
+
+Before finishing any rule, verify:
+
+- It does not duplicate an existing rule.
+- It does not contradict the PRD.
+- It does not contradict other Cursor Rules.
+- It is short enough to be useful.
+- It has clear trigger conditions.
+- It tells the agent what to do, not just what to remember.
+- It prevents known failure modes.
+- It avoids vague phrases like "write good code" or "follow best practices".
+- It uses exact project paths when possible.
+- It can be tested with a realistic prompt.
+
+## Test prompts
+
+After creating or updating rules, provide 2-3 realistic test prompts that should activate the rule.
+
+Example:
+
+Implement Capture step for Foundation milestone strictly according to PRD.md §8 and `01-contract-first`.
+
+Then explain which rule should activate and what correct behavior should look like.
+
+## Final response format
+
+When creating or editing rules, respond with:
+
+- Files created or changed.
+- Why each file exists.
+- Conflicts found, if any.
+- Test prompts to verify the rules.

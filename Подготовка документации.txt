@@ -1,0 +1,212 @@
+# Полный каталог Rules и Skills для LeadGenerator
+
+Ниже — **целевой набор** для всей системы из `PRD.md`. Уже есть только `00-project-overview.mdc`; остальное — к созданию по milestone.
+
+---
+
+## Принцип разбиения
+
+| Тип | Назначение | Когда срабатывает |
+|-----|------------|-------------------|
+| **Global rule** | Инварианты всей системы | `alwaysApply: true` |
+| **Scoped rule** | Один слой/стадия | `globs` по путям |
+| **Agent rule** | Поведение LLM-стадии | `globs: agents/{name}/**` |
+| **Skill** | Повторяемая процедура (код/MCP/CLI) | Агент вызывает по описанию задачи |
+
+**Правило:** overview = конституция; scoped/agent rules = детали; skills = «как выполнить», не «как думать».
+
+---
+
+## RULES — полный список (22 файла)
+
+### Уровень A — Глобальные (4)
+
+| # | Файл | `alwaysApply` | Назначение | Статус |
+|---|------|---------------|------------|--------|
+| A1 | `00-project-overview.mdc` | ✅ | DoD, стек, blackboard, gates, security, workflow | ✅ Есть |
+| A2 | `01-contract-first.mdc` | ✅ | JSON-контракты, `schema_version`, minimal-io, path `leads/{id}/` | ❌ Нужен |
+| A3 | `02-llm-invariants.mdc` | ✅ | evidence-only, no-fabricated-numbers, RU, cost-discipline, низкая температура | ❌ Нужен |
+| A4 | `03-pipeline-gates.mdc` | ✅ | G1–G6: что проверять, retry, блокировка следующей стадии | ❌ Нужен |
+
+---
+
+### Уровень B — Инфраструктура кода (6)
+
+| # | Файл | `globs` | Назначение | Milestone |
+|---|------|---------|------------|-----------|
+| B1 | `orchestrator.mdc` | `src/orchestrator/**` | State machine, `state.json`, routing, идемпотентность, `--stage/--force` | 1 Фундамент |
+| B2 | `typescript-standards.mdc` | `src/**/*.ts` | strict TS, naming, error types, no `any` в публичных API | 1 |
+| B3 | `schemas.mdc` | `schemas/**` | JSON Schema: версии, `additionalProperties`, совместимость | 1 |
+| B4 | `gates-code.mdc` | `src/gates/**` | Gate = schema + tech checks; read-only; structured results | 1 |
+| B5 | `capture-step.mdc` | `src/steps/capture/**` | Playwright: desktop/mobile, text, assets, signals, retry | 1 |
+| B6 | `publish-step.mdc` | `src/steps/publish/**` | Cloudflare Pages, smoke-test, `deploy.json` | 4 |
+
+---
+
+### Уровень C — LLM-агенты (6)
+
+| # | Файл | `globs` | Назначение | Milestone |
+|---|------|---------|------------|-----------|
+| C1 | `agent-research.mdc` | `agents/research/**` | Веб-поиск/MCP; confidence фактов; не выдумывать конкурентов | 6 |
+| C2 | `agent-audit.mdc` | `agents/audit/**` | Человеческий язык; finding = claim+evidence+impact+severity; фокус на деньгах | 2 |
+| C3 | `agent-copy.mdc` | `agents/copy/**` | Ниша, реальные факты, CTA, без клише; `content.json` | 3 |
+| C4 | `agent-design.mdc` | `agents/design/**` | Только design-system + vertical; адаптив; brand tokens из capture | 3 |
+| C5 | `agent-design-critic.mdc` | `agents/design-critic/**` | Визуальная оценка по preview-скринам; рубрика G4 | 3 |
+| C6 | `agent-offer.mdc` | `agents/offer/**` | Персонализация, ссылки demo/portfolio/pricing, лимит длины | 5 |
+
+---
+
+### Уровень D — Контент и демо (4)
+
+| # | Файл | `globs` | Назначение | Milestone |
+|---|------|---------|------------|-----------|
+| D1 | `context-files.mdc` | `context/**` | Статическая экспертиза; не генерировать заново в runtime | 2–5 |
+| D2 | `design-system.mdc` | `context/design-system/**` | Токены, компоненты, layout; без бизнес-логики pipeline | 3 |
+| D3 | `vertical-templates.mdc` | `context/verticals/**` | Архетипы по нишам; слоты под `content.json` | 3 |
+| D4 | `demo-site-output.mdc` | `leads/**/design/**` | Качество демо: не generic AI-шаблон; реальные ассеты клиента | 3 |
+
+---
+
+### Уровень E — Вспомогательные (2, опционально)
+
+| # | Файл | Назначение | Статус |
+|---|------|------------|--------|
+| E1 | `EXAMPLES.mdc` | Примеры мышления (think before coding) | ✅ Есть — оставить |
+| E2 | `00-rule-creator.mdc` | Как писать новые rules | ✅ Есть — dev-only |
+
+---
+
+## SKILLS — полный список (14)
+
+### Уровень 1 — Pipeline core (обязательные, 7)
+
+| # | Skill | Кто использует | Что делает | Milestone |
+|---|-------|----------------|------------|-----------|
+| S1 | `validate-contract` | Все gates, агенты | `ajv` + схема из `schemas/` → pass/fail с путём ошибки | 1 |
+| S2 | `capture-website` | Capture step | Playwright: desktop/mobile PNG, `text.txt`, logo/photos, `meta.json` + signals | 1 |
+| S3 | `probe-site` | Orchestrator routing | HTTP 200, не парковка, непустой HTML → `has_website` | 1 |
+| S4 | `run-pipeline-stage` | Orchestrator / пользователь | CLI: `--lead`, `--data`, `--stage`, `--force`; обновление `state.json` | 1 |
+| S5 | `brand-extraction` | Capture, Design | Палитра/шрифт из CSS/скринов → brand tokens | 3 |
+| S6 | `render-preview` | Design step | Рендер `design/dist` → `preview-desktop.png`, `preview-mobile.png` | 3 |
+| S7 | `deploy-cloudflare` | Publish step | Деплой билда → `demo_url` в `deploy.json` | 4 |
+
+---
+
+### Уровень 2 — Quality & validation (4)
+
+| # | Skill | Кто использует | Что делает | Milestone |
+|---|-------|----------------|------------|-----------|
+| S8 | `gate-g1-capture` | После Capture | Скрины не пустые, HTTP 200, текст ≥ N символов | 1 |
+| S9 | `gate-g2-audit-research` | После Audit/Research | Схема, ≥N findings, evidence-ссылки существуют | 2 |
+| S10 | `smoke-test-url` | Publish, Offer gate | 200, no console errors, опц. Lighthouse | 4–5 |
+| S11 | `link-check` | Offer gate G6 | demo, portfolio, audit_pdf резолвятся | 5 |
+
+---
+
+### Уровень 3 — Agent helpers (3)
+
+| # | Skill | Кто использует | Что делает | Milestone |
+|---|-------|----------------|------------|-----------|
+| S12 | `resolve-lead` | Orchestrator | Inline JSON / Excel → `lead.json` + slug | 1 (inline), 7 (xlsx) |
+| S13 | `web-research-company` | Research agent | Firecrawl/Exa: ниша, услуги, гео, конкуренты → черновик `research.json` | 6 |
+| S14 | `generate-audit-pdf` | Audit / Offer | `audit.json` → `audit.pdf` для клиента | 5 |
+
+---
+
+## Матрица: Rule ↔ Skill ↔ Стадия
+
+```mermaid
+flowchart LR
+    subgraph rules [Rules]
+        R0[00-overview]
+        R1[orchestrator]
+        R2[capture-step]
+        R3[agent-audit]
+        R4[agent-design]
+        R5[agent-offer]
+    end
+    subgraph skills [Skills]
+        S1[validate-contract]
+        S2[capture-website]
+        S3[probe-site]
+        S4[run-pipeline-stage]
+        S7[deploy-cloudflare]
+        S11[link-check]
+    end
+    subgraph stages [Stages]
+        O[Orchestrator]
+        C[Capture]
+        A[Audit]
+        D[Design]
+        P[Publish]
+        Of[Offer]
+    end
+    R0 --> O
+    R1 --> O
+    S3 --> O
+    S4 --> O
+    S1 --> O
+    R2 --> C
+    S2 --> C
+    S8 --> C
+    R3 --> A
+    S9 --> A
+    R4 --> D
+    S5 --> D
+    S6 --> D
+    S7 --> P
+    S10 --> P
+    R5 --> Of
+    S11 --> Of
+    S14 --> Of
+```
+
+---
+
+## Порядок внедрения (синхронно с PRD §19)
+
+| Фаза | Rules | Skills |
+|------|-------|--------|
+| **1 Фундамент** | A2, A3, B1–B5, B3 | S1–S4, S8, S12 |
+| **2 Аудит** | C2, D1 (+ `audit-framework` в context) | S9 |
+| **3 Copy+Design** | C3, C4, C5, D2, D3, D4 | S5, S6 |
+| **4 Publish** | B6 | S7, S10 |
+| **5 Offer** | C6 | S11, S14 |
+| **6 Research** | C1 | S13 |
+| **7 Масштаб** | A4 (полная спецификация G1–G6) | расширение S12 (Excel) |
+
+---
+
+## Что НЕ нужно как отдельные rules/skills
+
+| Идея | Почему не отдельно |
+|------|-------------------|
+| Screenshot Agent | Входит в `capture-step.mdc` + `capture-website` |
+| GitHub Publish Agent | Входит в `publish-step.mdc` + `deploy-cloudflare` |
+| «Сбор данных» agent | Часть Capture или Research |
+| Отдельный skill на каждый JSON-файл | Один `validate-contract` + схемы в `schemas/` |
+| Skill на каждый gate | Можно 6 мелких (S8–S11 + G3/G4/G6) или один `run-quality-gate` с параметром `gate_id` — на выбор при реализации |
+
+---
+
+## Итого
+
+| Категория | Всего | Уже есть | Нужно создать |
+|-----------|-------|----------|---------------|
+| **Global rules** | 4 | 1 | 3 |
+| **Scoped/agent rules** | 16 | 0 | 16 |
+| **Dev/aux rules** | 2 | 2 | 0 |
+| **Skills** | 14 | 0 | 14 |
+| **Итого production** | **34** | **1** | **33** |
+
+---
+
+## Минимальный набор для старта Фундамента (если делать только сейчас)
+
+**Rules (8):** `00-project-overview` ✅ + `01-contract-first` + `02-llm-invariants` + `orchestrator` + `typescript-standards` + `schemas` + `gates-code` + `capture-step`
+
+**Skills (6):** `validate-contract`, `capture-website`, `probe-site`, `run-pipeline-stage`, `gate-g1-capture`, `resolve-lead`
+
+Этого достаточно, чтобы агент Cursor собрал блок Фундамента без лишнего контекста.
+
+Если нужно — следующим шагом могу **создать все rules/skills фазы 1** (8 rules + 6 skills) в репозитории.

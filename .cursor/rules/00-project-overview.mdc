@@ -1,0 +1,56 @@
+---
+description: Project identity, source of truth, Definition of Done, stack summary, and coding assistant workflow for LeadGenerator.
+alwaysApply: true
+---
+
+# LeadGenerator — Project Overview
+
+## Applies when
+
+Every task in this repository: code, rules, skills, agents, schemas, pipeline stages.
+
+## Source of truth
+
+1. [PRD.md](PRD.md) — **authoritative architecture document** (agents, contracts, gates, milestones §19). Do not edit without **explicit user approval**; before any proposed PRD change, warn the user and wait for confirmation.
+2. [CONVENTIONS.md](CONVENTIONS.md) — artifact paths, stage statuses, naming (when present).
+3. [schemas/*.schema.json](schemas/) — inter-stage JSON contracts.
+4. [context/](context/) — static expertise (read-only at runtime).
+5. Other `.cursor/rules/*.mdc` — must not contradict PRD.
+
+Priority on conflict: `[P]` project invariants + PRD > stack constraints > universal engineering standards.
+
+## Required behavior
+
+- The agent always uses MCP sequential-thinking to perform all tasks without exception.
+- Project: **LeadGenerator** — multi-agent pipeline: lead → audit/research → demo site → personalized offer.
+- Work only within current milestone from PRD §19 unless user explicitly requests otherwise.
+- Definition of Done: `written → tested → working`; report checks as `pass|fail|not run`.
+- Stack: Node.js LTS, TypeScript strict, `tsx`, Playwright, `ajv`, Cloudflare Pages for demo deploy.
+- Architecture: blackboard (`leads/{lead_id}/`), Orchestrator = code state machine, LLM only in Research/Audit/Copy/Design/Offer/Design-Critic.
+- **`routing.ts` scope**: only `decideBranch` + `probeSite` (code, no LLM). No stage graph, no `getLlm*` / `isLlmStage` functions — that belongs in `pipeline.ts`.
+- Before coding: short plan (files, stage ownership, contract/gate impact, tests).
+- After coding: list changed files, behavior, test results, blockers.
+- Load minimal context per task: relevant PRD section + schemas + CONVENTIONS + stage rules — not entire PRD or codebase.
+- One logical change per commit; commit only on user request.
+
+## Forbidden behavior
+
+- Do not edit [PRD.md](PRD.md) without explicit user approval — no drive-by fixes, syncs, or «helpful» updates.
+- Do not override PRD with chat history, old prompts, or code outside scope.
+- Do not change contracts, stage order, gates, or agent roster without PRD update or user approval.
+- Do not guess when requirements are missing or conflicting — stop and ask.
+- Do not claim done without running relevant validation/smoke.
+- Do not add unrelated refactors, mass formatting, or rollback user changes.
+- Do not commit secrets, `.env`, or `leads/` client artifacts.
+
+## Output requirements
+
+Before implementation: milestone, PRD sections, allowed files, contract/gate impact, plan, tests, blockers.
+After implementation: files + responsibility, behavior, `pass|fail|not run` per check, remaining limitations.
+
+## Verification checklist
+
+- [ ] Task scope matches PRD §19 milestone.
+- [ ] No hidden new contracts/stages/gates introduced.
+- [ ] Relevant tests or smoke were run and reported honestly.
+- [ ] Detailed contract/gate/LLM rules deferred to `01-`, `02-`, `03-` rules — not duplicated here.

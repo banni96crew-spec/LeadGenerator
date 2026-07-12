@@ -1,0 +1,51 @@
+---
+description: TypeScript strict standards for LeadGenerator src/ — types, naming, errors, async boundaries.
+globs:
+  - "src/**/*.ts"
+alwaysApply: false
+---
+
+# TypeScript Standards
+
+## Applies when
+
+Writing or editing any file under `src/`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §5 stack (Node LTS, TS strict, `tsx`).
+- `tsconfig.json` (strict mode).
+- Level A `01-contract-first` (naming: camelCase/PascalCase/snake_case in JSON).
+
+## Required behavior
+
+- **Strict**: enable `strict`; avoid `any` in public APIs, gate results, state types.
+- **Naming**: `camelCase` functions/variables; `PascalCase` types/interfaces; `UPPER_SNAKE_CASE` constants; JSON artifact keys `snake_case`.
+- **Exports**: prefer named exports; one primary responsibility per file.
+- **Types for contracts**: define TS interfaces matching `schemas/*.schema.json` where stages read/write JSON (e.g. `Lead`, `PipelineState`, `CaptureMeta`, `GateResult`).
+- **GateResult**: `{ pass: boolean; gate: string; errors: string[]; warnings?: string[] }`.
+- **Errors**: throw typed errors or return `Result<T, E>` at boundaries; include `lead_id`, `stage`, context in messages.
+- **Async**: `async` only at I/O boundaries (fetch, Playwright, fs); keep pure validation synchronous.
+- **Imports**: use `.js` extension in ESM imports if `tsconfig` uses `module: NodeNext`.
+- **File size**: if file approaches 200 lines, split by responsibility (per Foundation plan modules).
+
+## Forbidden behavior
+
+- Do not use `any` to silence schema validation results.
+- Do not use `console.log` as the only error path — use `src/lib/log.ts`.
+- Do not import from `agents/` or `context/` in code stages (orchestrator, steps, gates).
+- Do not add dependencies without justification in task scope.
+- Do not use `enum` for stage names — use const objects or union types aligned with PRD.
+
+## Output requirements
+
+- Code compiles under `tsc --noEmit` (when tsconfig present).
+- Public functions have explicit parameter and return types.
+- Shared types live in `src/lib/types.ts` or colocated domain file — not duplicated.
+
+## Verification checklist
+
+- [ ] No `any` in exported functions.
+- [ ] Naming matches convention.
+- [ ] Gate and state types match `03-pipeline-gates` and `state.schema.json`.
+- [ ] `tsc --noEmit` passes (when project scaffold exists).

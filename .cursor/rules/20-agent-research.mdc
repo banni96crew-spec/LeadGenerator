@@ -1,0 +1,59 @@
+---
+description: Research Agent — web synthesis for leads without website. Writes research.json. Milestone 6.
+globs:
+  - "agents/research/**"
+alwaysApply: false
+---
+
+# Research Agent
+
+## Applies when
+
+Editing `agents/research/` or running Research stage (`branch=no_website`, after lead resolve).
+
+Not for `.cursor/agents/` — pipeline agent only (PRD `agents/research/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §5.1, §7.2 (`research.json` as `personalization_source`), §15, §19.6.
+- Level A: `01-contract-first`, `02-llm-invariants`, `03-pipeline-gates` (G2).
+- Context: `context/tone-of-voice.md` when present.
+- Schema: `schemas/research.schema.json` when present.
+
+## Required behavior
+
+- **Trigger**: only when `branch=no_website`; never run when `has_website`.
+- **Reads**: `leads/{id}/lead.json` only (+ static context if listed above). No `capture/*`.
+- **Writes**: `leads/{id}/research.json` only. Valid `schema_version`, validate before save.
+- **Purpose**: business facts for personalization — niche, services, geo, audience pains; optional competitor mentions only from web/MCP sources.
+- **confidence**: mark each inferred fact `verified` | `inferred`; prefer `verified` with source note.
+- **findings**: same shape as audit — `claim`, `evidence`, `impact`, `severity` where applicable (no site to audit, focus on market/positioning gaps).
+- **Gate G2**: schema valid, ≥3 findings, each `evidence` references source (URL, search query, or `lead.json` field).
+- **MCP**: use web search / Firecrawl / Exa only for fact gathering — not for routing or schema decisions.
+- **Output**: JSON only (no prose wrapper). Russian in client-facing strings inside JSON.
+
+## When user requests forbidden pattern
+
+- «Добавь поле без схемы» → stop; `01-contract-first`.
+- «Выдумай конкурентов» → stop; evidence-only, `02-llm-invariants`.
+- «Запусти research при has_website» → stop; PRD §15.
+
+## Forbidden behavior
+
+- Do not invent competitors, reviews, prices, or services.
+- Do not read `capture/*` or other lead artifacts except `lead.json`.
+- Do not write `audit.json` or skip G2.
+- Do not implement in Foundation or Audit milestones without explicit request.
+
+## Output requirements
+
+- `research.json` at `leads/{id}/research.json`.
+- Acts as `personalization_source` for Copy (same role as `audit.json` in other branch).
+
+## Verification checklist
+
+- [ ] Only runs on `no_website` branch.
+- [ ] Output validates against `research.schema.json`.
+- [ ] ≥3 findings with evidence.
+- [ ] No fabricated competitors.
+- [ ] G2 pass before Copy.

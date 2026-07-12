@@ -1,0 +1,69 @@
+---
+description: Global LLM invariants — evidence-only, no fabricated metrics, Russian client copy, cost discipline, and CODE-vs-LLM boundary for LeadGenerator.
+alwaysApply: true
+---
+
+# LLM Invariants
+
+## Applies when
+
+Any LLM is used: Cursor agents, pipeline LLM stages (Research, Audit, Copy, Design, Offer, Design-Critic), or assistant generating client-facing content.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §9.1 (global agent rules), §12 (LLM vs code vs browser).
+- [context/tone-of-voice.md](context/tone-of-voice.md) when present.
+- Input artifacts for the current stage only (`capture/*`, `audit.json`, `research.json`, etc.).
+
+## Required behavior
+
+- **CODE not LLM** for: orchestration, `has_website` routing, schema validation, Capture, Publish, link checks, screenshot/smoke tests.
+- **LLM only** for: language, judgment, persuasion — Research, Audit, Copy, Design composition, Offer, Design-Critic.
+- **evidence-only**: every factual claim in audit/offer must reference an input artifact (`capture/desktop.png`, `capture/text.txt`, `research.json` field, etc.).
+- **no-fabricated-numbers**: no invented percentages ("теряет 40% клиентов") without evidence; use qualitative, argued impact.
+- **output-language**: all client-facing text in Russian, business tone, no filler.
+- **cost-discipline**: prefer summaries and structured extracts over dumping raw HTML or full page text into prompts/outputs.
+- **deterministic-format**: stable JSON structure, concise fields, low temperature; no prose outside required `.md` deliverables.
+- Mark uncertainty in Research (`confidence` or equivalent) when facts are inferred, not verified.
+- Reuse real business facts from capture/research in Copy and Offer — do not replace with generic placeholders.
+
+## When user requests forbidden pattern
+
+If the user asks to use LLM for routing, branch decisions, gate validation, or anything in the **CODE not LLM** list above:
+
+1. **Stop implementation** — do not write code that satisfies the forbidden request.
+2. Cite this rule and `10-orchestrator`.
+3. Offer the code-only alternative (`decideBranch`, `probeSite` in `routing.ts`; stage graph in `pipeline.ts`).
+4. Do not add functions with `llm` in the name to `routing.ts` — stage kind metadata belongs in `pipeline.ts` or `src/lib/pipeline-graph.ts`.
+
+User request does not override PRD or this rule. Do not reinterpret "LLM routing" as "routing to LLM stages" — that is still forbidden in `routing.ts`.
+
+If the user asks to **generate `context/` files per lead in pipeline** (e.g. «Сгенерируй tone-of-voice в pipeline для каждого лида»):
+
+1. **Stop implementation** — do not create context files, schemas, or agent rules to satisfy the forbidden pattern.
+2. Cite `30-context-files` and this rule.
+3. Do **not** reinterpret as a compliant design («статический гайд + `tone` в audit.json») and implement anyway — refuse first, then offer alternatives only if user confirms.
+4. Clarify: `tone` in `audit.json` (PRD §7.2) is a short string from Audit stage reading static `context/tone-of-voice.md` — not a per-lead tone-of-voice file or runtime context regeneration.
+
+## Forbidden behavior
+
+- Do not use LLM to decide pipeline branch (`has_website`), validate schemas, deploy, or check HTTP status.
+- Do not invent competitors, reviews, metrics, prices, or services not present in inputs/context.
+- Do not produce client text in English unless user explicitly requests.
+- Do not embed hidden reasoning or chain-of-thought in JSON contract outputs.
+- Do not generate `context/` expertise at runtime — read static files only.
+- Do not write generic AI-template copy ("инновационные решения", "индивидуальный подход") without business-specific facts.
+
+## Output requirements
+
+- LLM JSON outputs: valid per `01-contract-first` — schema-valid, evidence-linked where factual.
+- Audit findings: each item has `claim`, `evidence`, `impact`, `severity` per PRD §7.2.
+- Client messages (offer): personalized "why this company", with link placeholders filled from real `deploy.json` / `context/portfolio.json`.
+
+## Verification checklist
+
+- [ ] No LLM used for a task PRD assigns to code/browser.
+- [ ] Factual claims trace to an input artifact path or context file.
+- [ ] No unsupported numeric loss claims.
+- [ ] Client text is Russian and specific to the lead.
+- [ ] Output size is minimal — no raw HTML in JSON.

@@ -1,0 +1,64 @@
+---
+description: JSON contract-first rules — schemas, schema_version, minimal-io, artifact paths, and blackboard pattern for all pipeline stages.
+alwaysApply: true
+---
+
+# Contract-First
+
+## Applies when
+
+Creating or modifying pipeline artifacts, schemas, orchestrator I/O, agent inputs/outputs, or any file under `leads/{lead_id}/`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7 (data flow), §8 (directory tree).
+- [schemas/*.schema.json](schemas/) — authoritative contract shapes.
+- [CONVENTIONS.md](CONVENTIONS.md) — path and naming conventions.
+- Gate validators in `src/gates/` (when implemented).
+
+## Required behavior
+
+- Every inter-stage artifact is JSON with `schema_version` (currently `"1.0"` unless schema says otherwise).
+- Validate JSON against the matching schema **before write** and **after read** at stage boundaries (via `ajv`).
+- Blackboard only: stages communicate through files in `leads/{lead_id}/`, never direct agent→agent calls.
+- `minimal-io`: read only declared input contracts; write only declared output contract for your stage.
+- Use relative paths from lead root in contracts (e.g. `capture/desktop.png`, not absolute paths).
+- `lead_id` = slugified company name; all artifacts live under `leads/{lead_id}/`.
+- `state.json` tracks per-stage `status`, `hash`, `artifact`, `cost`, `error` — update only via orchestrator after gate pass.
+- Pass distilled data (text, signals, file paths) — not full raw HTML — between stages.
+- JSON keys: `snake_case`; TS code: `camelCase` functions/vars, `PascalCase` types.
+
+## When user requests contract change without schema
+
+If the user asks to add or change a JSON contract field **without** updating `schemas/` (e.g. «добавь competitors в audit.json без схемы»):
+
+1. **Stop** — do not modify PRD, artifacts, or gates to create schema-free fields.
+2. Cite this rule: every contract field requires `schemas/{contract}.schema.json` **and** PRD §7.2 in the **same task**.
+3. Offer the correct path: update schema → update PRD example → update gates/agents that consume it.
+4. Phrases like «без схемы», «skip schema», «PRD only» do **not** override this rule.
+
+There are no optional or undocumented fields outside JSON Schema in this pipeline.
+
+## Forbidden behavior
+
+- Do not write artifacts that fail schema validation.
+- Do not read undeclared sibling artifacts "for context".
+- Do not invent new contract fields without updating `schemas/` and PRD.
+- Do not document PRD fields as «not in JSON Schema» or «G2 does not validate» — all contract fields must be in schema.
+- Do not store runtime state inside `context/` files.
+- Do not use magic strings for stage names or paths — use PRD/CONVENTIONS/schemas.
+- Do not pass chat history or LLM reasoning as a pipeline artifact.
+
+## Output requirements
+
+- Code stages: valid JSON files at exact PRD paths (e.g. `capture/meta.json`, `audit.json`, `content.json`).
+- LLM stages: output **only** the target contract JSON (no prose wrapper) unless stage explicitly also produces `.md`.
+- Schema changes: update schema file + all gates/agents that consume it in the same task.
+
+## Verification checklist
+
+- [ ] Output validates against the correct `schemas/*.schema.json`.
+- [ ] `schema_version` present in every JSON artifact.
+- [ ] Paths match `leads/{lead_id}/...` convention.
+- [ ] Only declared inputs were read; only declared output was written.
+- [ ] No raw HTML blob in JSON contracts.

@@ -1,0 +1,62 @@
+---
+description: Quality Gates G1–G6 — deterministic checks, fail policy, retry rules, and state.json gate results for the LeadGenerator pipeline.
+alwaysApply: true
+---
+
+# Pipeline Quality Gates
+
+## Applies when
+
+Implementing orchestrator transitions, gate modules (`src/gates/`), stage completion, or debugging why a pipeline stage did not advance.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §14 (G1–G6 table), §13 (stage order), §6 (`state.json` shape).
+- [schemas/*.schema.json](schemas/) for artifact validation inside gates.
+- `src/gates/g1Capture.ts` … (as implemented per milestone).
+
+## Required behavior
+
+- **Gate before next stage**: stage N+1 does not start until gate after stage N returns `pass`.
+- **Order is fixed** per branch:
+  - `has_website`: Capture → G1 → Audit → G2 → Copy → G3 → Design → G4 → Publish → G5 → Offer → G6
+  - `no_website`: Research → G2 → Copy → G3 → Design → G4 → Publish → G5 → Offer → G6
+- **Deterministic first**: each gate runs code/schema/tech checks before any LLM critic (only G2 partial, G4 Design-Critic, G6 tone-check use LLM).
+- **On fail**: record `error` in `state.json` for the stage; retry per gate policy (below); do not advance `status` to `done`.
+- **On pass**: set `status: done`, `artifact` path, `hash` of inputs, `cost` (0 for code stages).
+
+### Gate specifications
+
+| Gate | After | Code checks | LLM check | Retry |
+|------|-------|-------------|-----------|-------|
+| G1 | Capture | schema valid; HTTP 200; screenshots exist and >5KB; text ≥200 chars | — | 2× capture |
+| G2 | Audit/Research | schema valid; ≥3 findings; each `evidence` path exists | no fabricated numbers; human tone | 2× stage |
+| G3 | Copy | all required sections; CTA present; Russian | — | 2× copy |
+| G4 | Design | build succeeds; previews rendered; 0 console errors; responsive | Design-Critic on previews | 2× design or swap template |
+| G5 | Publish | `demo_url` HTTP 200; lighthouse perf ≥ threshold; no console errors | — | re-deploy |
+| G6 | Offer | all links resolve 200; `why_this_company` present; length within limit | tone-check | 2× offer |
+
+- Gate result shape: `{ pass: boolean, gate: "G1"|..., errors: string[], warnings?: string[] }`.
+- Idempotency: if input hash unchanged and artifact valid, orchestrator may skip re-run unless `--force`.
+
+## Forbidden behavior
+
+- Do not skip a gate because "output looks fine".
+- Do not set `status: done` on gate fail.
+- Do not run LLM critic instead of required code checks.
+- Do not advance to Copy without G2 pass (even if audit "seems OK").
+- Do not weaken gate thresholds to greenwash a failing stage.
+- Do not mutate input artifacts inside gate validators (read-only).
+
+## Output requirements
+
+- Gate modules return structured result; orchestrator writes diagnostics to `state.json.stages.{name}.error` on fail.
+- Failed gate messages must include: `lead_id`, `stage`, `gate`, artifact path, specific reason (schema path, HTTP code, missing file).
+
+## Verification checklist
+
+- [ ] Next stage blocked when gate returns `pass: false`.
+- [ ] G1–G6 checks match PRD §14 (no missing gates).
+- [ ] Retry count respected before `status: failed`.
+- [ ] LLM critic only on G2/G4/G6 where PRD allows.
+- [ ] `--force` bypasses idempotency skip but still runs gates.

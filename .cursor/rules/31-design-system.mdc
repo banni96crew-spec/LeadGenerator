@@ -1,0 +1,58 @@
+---
+description: Design system — tokens, components, layout patterns for static demo assembly. Milestone 3.
+globs:
+  - "context/design-system/**"
+alwaysApply: false
+---
+
+# Design System
+
+## Applies when
+
+Editing `context/design-system/` — shared visual components and tokens for Design agent assembly.
+
+Shared context invariants: `30-context-files`. Assembly behavior: C `23-agent-design`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §11 (`context/design-system/`), §4 (Design assembly, not from scratch).
+- [PRD.md](PRD.md) §7.2 (`content.json` sections, `design/build.json` `brand_tokens`).
+- Level A `00-project-overview` (static HTML demo stack).
+- C `23-agent-design` (assembly only — consumes this design-system).
+
+## Required behavior
+
+- **Tokens**: `primary`, `font`, spacing, radius — defaults in CSS variables or tokens file; lead-specific brand applied at build via `brand_tokens` in `build.json`, not hardcoded per client in shared files.
+- **Components**: hero, benefits, CTA, footer, contact block — slot-ready HTML partials.
+- **Layout patterns**: responsive desktop + mobile breakpoints; no horizontal overflow.
+- **Slot mapping**: component placeholders align with `content.json` sections (`hero`, `benefits[]`, `social_proof`, `contact`).
+- **Static only**: HTML + CSS — no React, Next.js, Vue, or SPA frameworks.
+- **No pipeline logic**: no orchestrator, gates, or TypeScript runtime code in design-system.
+- **Versioning**: breaking layout/token changes — document in `context/design-system/README.md` or version file.
+
+## When user requests forbidden pattern
+
+- «React component library» → stop; static HTML/CSS per `00-project-overview`.
+- «Уникальный CSS с нуля для каждого лида» → stop; C `23-agent-design` assembles from design-system + vertical.
+- «TypeScript orchestrator в design-system» → stop; pipeline code lives in `src/`.
+- «Захардкодь логотип клиента в design-system» → stop; logo path via `brand_tokens` at build time.
+
+## Forbidden behavior
+
+- Do not add SPA/framework dependencies.
+- Do not embed lead-specific brand assets in shared design-system files.
+- Do not create arbitrary one-off layouts outside the component set without vertical template pairing.
+- Do not duplicate agent assembly logic — design-system is templates/tokens only.
+
+## Output requirements
+
+- Reusable HTML/CSS partials under `context/design-system/`.
+- Components consumable by Design agent without modification per lead (brand injected at build).
+
+## Verification checklist
+
+- [ ] Components map to `content.json` slot names.
+- [ ] Responsive CSS for mobile and desktop.
+- [ ] No framework deps in design-system.
+- [ ] No lead-specific assets in shared files.
+- [ ] Compatible with vertical templates (`32-vertical-templates`).

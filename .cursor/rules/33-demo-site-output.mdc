@@ -1,0 +1,63 @@
+---
+description: Demo site output quality — design/dist, build.json, previews, real client assets. Milestone 3.
+globs:
+  - "leads/**/design/**"
+alwaysApply: false
+---
+
+# Demo Site Output
+
+## Applies when
+
+Editing or reviewing `leads/{id}/design/**` — built demo site, metadata, and preview screenshots.
+
+Assembly behavior: C `23-agent-design`. Visual QA: C `24-agent-design-critic`. Assets source: B `14-capture`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`design/build.json`), §8 (`design/dist/`, previews).
+- [PRD.md](PRD.md) §14 G4 (build, previews, Design-Critic).
+- C `23-agent-design`, C `24-agent-design-critic`.
+- B `14-capture-step` (`capture/logo.png`, `capture/photos/*`).
+
+## Required behavior
+
+- **Artifacts**:
+  - `design/dist/` — static site ready for Cloudflare Pages
+  - `design/build.json` — `template`, `brand_tokens`, `build_dir`, `screens`
+  - `design/preview-desktop.png`, `design/preview-mobile.png` — for Design-Critic (G4)
+- **Real client assets**: when `capture/logo.png` or `capture/photos/*` exist — reuse in demo; no stock placeholders.
+- **Not generic AI-template**: niche copy from `content.json` visible; client logo when available; sellable look per G4 rubric.
+- **Responsive**: no horizontal overflow on mobile/desktop (G4 code check).
+- **build.json**: `template` name recorded (e.g. `renovation-v2`); `brand_tokens` from capture + design-system defaults.
+- **Manual edits**: prefer re-run Design stage over hand-editing `design/dist/` without updating `build.json` and previews.
+- **Previews required** before Design-Critic — do not skip PNG generation.
+
+## When user requests forbidden pattern
+
+- «Демо без логотипа клиента когда capture/logo.png есть» → stop; D4 + C `23-agent-design`.
+- «Placeholder stock images вместо capture» → stop; real assets when present.
+- «Пропусти preview PNGs» → stop; G4 requires previews (`03-pipeline-gates`).
+- «React SPA в design/dist» → stop; static HTML per `00-project-overview`.
+
+## Forbidden behavior
+
+- Do not ship empty or broken `design/dist/`.
+- Do not use framework SPA in demo output.
+- Do not omit `template` in `build.json`.
+- Do not modify `design/dist/` without regenerating previews and syncing `build.json`.
+- Do not ignore `content.json` slot content in rendered UI.
+
+## Output requirements
+
+- Valid static build under `leads/{id}/design/dist/`.
+- `build.json` validates against `schemas/design-build.schema.json` when present.
+- Both preview PNGs exist before G4 critic runs.
+
+## Verification checklist
+
+- [ ] Client logo reused when `capture/logo.png` exists.
+- [ ] `preview-desktop.png` and `preview-mobile.png` present.
+- [ ] `template` and `brand_tokens` in `build.json`.
+- [ ] Niche copy visible — not generic filler.
+- [ ] G4 code checks pass (build, overflow, console) before critic.

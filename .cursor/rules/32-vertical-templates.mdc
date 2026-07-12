@@ -1,0 +1,65 @@
+---
+description: Vertical templates — niche site archetypes with content.json slot alignment. Milestone 3.
+globs:
+  - "context/verticals/**"
+alwaysApply: false
+---
+
+# Vertical Templates
+
+## Applies when
+
+Editing `context/verticals/` — niche archetype definitions for Copy and Design agents.
+
+Shared context invariants: `30-context-files`. Design-system components: `31-design-system`.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`content.json` — `vertical`, `sections`).
+- [PRD.md](PRD.md) §11 (`context/verticals/*.md`).
+- Schema: `schemas/content.schema.json` when present.
+- C `22-agent-copy` (fills slots), C `23-agent-design` (maps slots → template HTML).
+
+## Required behavior
+
+- **One niche per file**: e.g. `renovation.md`, `dental.md` — not a universal template for all niches.
+- **Document per vertical**:
+  - Niche signals (keywords, audience, typical services)
+  - `vertical` id matching filename (e.g. `renovation` → `renovation.md`)
+  - Section order and slot names
+  - Recommended copy tone hints (reference `tone-of-voice.md`, do not duplicate)
+- **Slot alignment (mandatory)**: slots MUST match `content.json` sections:
+  - `hero` (headline, subheadline, cta)
+  - `benefits[]` (title, text)
+  - `social_proof` (reviews, cases)
+  - `contact` (phone, cta)
+- **`vertical` field**: value in `content.json` must match template id/filename.
+- **Milestone 3 first vertical**: one complete archetype (e.g. renovation) — not a stub.
+- **Paired HTML** (optional): vertical may reference design-system component layout for Design agent.
+
+## When user requests forbidden pattern
+
+- «Vertical без привязки к content.json» → stop; slots must match PRD §7.2 / schema.
+- «Generic vertical universal.md для всех ниш» → stop; niche-specific archetype required.
+- «Добавь секцию без обновления content.schema» → stop; `01-contract-first`.
+- «Смешай 3 ниши в одном файле» → stop; one niche per vertical file.
+
+## Forbidden behavior
+
+- Do not define slots absent from `content.json` / `content.schema.json`.
+- Do not write English-only vertical docs unless user requests.
+- Do not mix multiple niches in one template file.
+- Do not store lead-specific copy in vertical templates — templates are archetypes, not client data.
+
+## Output requirements
+
+- `.md` (and optional HTML reference) per vertical under `context/verticals/`.
+- Slot list explicitly documents mapping to `content.json` sections.
+
+## Verification checklist
+
+- [ ] Every slot in vertical exists in PRD `content.json` example.
+- [ ] `vertical` id consistent with filename.
+- [ ] One niche per file; first vertical complete for milestone 3.
+- [ ] Copy agent can fill slots; Design agent can map to template.
+- [ ] New sections require schema + PRD update first.

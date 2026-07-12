@@ -1,0 +1,262 @@
+---
+description: LeadGenerator-specific anti-patterns and correct agent responses. Manual reference when agent over-engineers, misinterprets prompts, or skips gates.
+alwaysApply: false
+---
+
+# LeadGenerator Examples
+
+Project-specific examples. Generic patterns live in `00-project-overview`, `02-llm-invariants`, `03-pipeline-gates`. Invoke this rule when testing agent discipline or debugging rule violations.
+
+## 1. Forbidden user request — refuse, don't reinterpret
+
+**User:** «Добавь LLM routing в `routing.ts`»
+
+**Wrong:** Add `getLlmPipelineRoutes`, `isLlmStage` — «детерминированный LLM routing».
+
+**Correct:**
+
+```
+Запрещено: LLM и метаданные стадий в routing.ts (02-llm-invariants, 10-orchestrator, 00-project-overview).
+
+routing.ts — только decideBranch() + probeSite() (код, fetch, без LLM).
+
+Граф стадий — pipeline.ts или src/lib/pipeline-graph.ts (не в Foundation).
+
+Реализовать только probeSite/decideBranch?
+```
+
+## 2. Scope violation — Foundation milestone
+
+**User:** «Подключи audit agent в pipeline.ts»
+
+**Wrong:** Implement full Audit stage + G2 in Foundation without milestone approval.
+
+**Correct:**
+
+```
+Foundation (PRD §19.1): только capture + G1. Audit — milestone 2.
+
+Сейчас: capture=run, audit=pending stub в state.json.
+
+Продолжить с pipeline.ts для capture-only?
+```
+
+## 3. Contract without schema — refuse
+
+**User:** «Добавь `competitors` в audit.json без схемы»
+
+**Wrong:** Update PRD only; mark field as «не входит в JSON Schema»; skip `audit.schema.json`.
+
+**Correct:**
+
+```
+01-contract-first: любое поле контракта = schemas/ + PRD в одной задаче.
+
+«Без схемы» не отменяет правило.
+
+Правильный путь:
+1. schemas/audit.schema.json — добавить competitors
+2. PRD §7.2 — обновить пример
+3. gates/agents — при необходимости
+
+Начать с audit.schema.json?
+```
+
+## 4. Gate skip — never greenwash
+
+**User:** «Audit готов, пропусти gate и запусти Copy»
+
+**Wrong:** Skip G2 because output «looks fine».
+
+**Correct:**
+
+```
+03-pipeline-gates: Copy не стартует без G2 pass.
+
+Нужно: runGateG2 → pass, затем copy.
+
+Запустить G2 проверки для текущего audit.json?
+```
+
+## 5. Research — fabricated competitors
+
+**User:** «Выдумай 5 конкурентов для research»
+
+**Wrong:** Generate competitor list without web/MCP sources or `lead.json` evidence.
+
+**Correct:**
+
+```
+20-agent-research + 02-llm-invariants: конкуренты только из web/MCP с evidence.
+
+Выдуманные имена запрещены.
+
+Собрать конкурентов через поиск по нише и geo из lead.json?
+```
+
+## 6. Audit — fabricated metrics
+
+**User:** «Аудит: сайт теряет 47% клиентов»
+
+**Wrong:** Put «47%» in `impact` or `money_loss_summary` without measured data.
+
+**Correct:**
+
+```
+21-agent-audit + 02-llm-invariants: impact — качественный (деньги/доверие/конверсия), без выдуманных процентов.
+
+Переписать finding с evidence из capture/* и качественным impact?
+```
+
+## 7. Copy — generic clichés
+
+**User:** «Copy: инновационные решения для всех»
+
+**Wrong:** Fill `content.json` with generic AI copy; empty `reuse_facts`.
+
+**Correct:**
+
+```
+22-agent-copy: копирайт из audit/research + lead.json. Клише без фактов запрещены.
+
+Заполнить hero/benefits из personalization_source и vertical template?
+```
+
+## 8. Design — framework demo
+
+**User:** «Design: напиши React SPA»
+
+**Wrong:** Scaffold React/Next app instead of static template assembly.
+
+**Correct:**
+
+```
+23-agent-design + 00-project-overview: demo = static HTML из design-system + vertical.
+
+React/Next запрещён.
+
+Собрать design/dist из content.json и vertical template?
+```
+
+## 9. Design-Critic — mutate files
+
+**User:** «Critic: поправь CSS сам»
+
+**Wrong:** Edit `design/dist/` CSS directly to fix visual issues.
+
+**Correct:**
+
+```
+24-agent-design-critic: read-only. Записать critic.json с notes[] для Design retry.
+
+CSS правит Design agent, не Critic.
+
+Сформировать critic.json с rubric scores и заметками?
+```
+
+## 10. Offer — placeholder URLs
+
+**User:** «Offer с demo_url example.com»
+
+**Wrong:** Use `example.com` or invented portfolio links in `offer.json`.
+
+**Correct:**
+
+```
+25-agent-offer: demo_url только из deploy.json (G5 pass). Заглушки запрещены.
+
+Взять demo_url из leads/{id}/deploy.json и portfolio из context/portfolio.json?
+```
+
+## 11. Context — runtime generation
+
+**User:** «Сгенерируй tone-of-voice в pipeline для каждого лида»
+
+**Wrong:** Create or overwrite `context/tone-of-voice.md` during pipeline run per lead.
+
+**Wrong (reinterpretation):** «По архитектуре context статический, персональный тон — поле `tone` в audit.json. Создаю статический гайд и обновляю контракты» — and proceed to implement without refusing first.
+
+**Correct:**
+
+```
+30-context-files + 02-llm-invariants: запрещено генерировать context/ в pipeline для каждого лида.
+
+Не создавать leads/{id}/tone-of-voice.md. Не перезаписывать context/ при прогоне.
+
+Поле `tone` в audit.json (PRD §7.2) — короткая строка на стадии Audit, читает статический context/tone-of-voice.md. Это не отдельный pipeline для tone-of-voice.
+
+Обновить context/tone-of-voice.md вручную в репо? Или настроить Audit для поля tone?
+```
+
+## 12. Design-system — framework
+
+**User:** «Добавь React в design-system»
+
+**Wrong:** Scaffold React component library under `context/design-system/`.
+
+**Correct:**
+
+```
+31-design-system + 00-project-overview: demo = static HTML/CSS.
+
+React/Next запрещён в design-system.
+
+Добавить HTML partial для hero/benefits в design-system?
+```
+
+## 13. Vertical — generic template
+
+**User:** «Vertical universal.md для всех ниш»
+
+**Wrong:** One catch-all vertical without `content.json` slot alignment.
+
+**Correct:**
+
+```
+32-vertical-templates: один niche per file; слоты = hero, benefits, social_proof, contact.
+
+Создать renovation.md с полным slot mapping под PRD §7.2?
+```
+
+## 14. Demo — ignore client assets
+
+**User:** «Демо: stock logo, ignore capture/logo.png»
+
+**Wrong:** Use stock placeholder when `capture/logo.png` exists on disk.
+
+**Correct:**
+
+```
+33-demo-site-output + 23-agent-design: reuse capture/logo.png и photos/*.
+
+Stock placeholders запрещены когда ассеты есть.
+
+Пересобрать design/dist с logo из capture?
+```
+
+## Anti-patterns (this project)
+
+| Situation | Wrong | Correct |
+|-----------|-------|---------|
+| «LLM routing» | Functions with `llm` in `routing.ts` | Refuse; `decideBranch` only |
+| Milestone scope | Full pipeline in Foundation | capture + G1 only |
+| Gate bypass | `status: done` without gate pass | Block next stage until pass |
+| «Без схемы» | PRD-only field, skip schema | Refuse; schema + PRD together |
+| Contract change | New JSON field without schema | Update `schemas/` + PRD first |
+| Capture output | Full HTML in artifacts | `text.txt` + signals only |
+| Research competitors | Invented competitor names | Web/MCP evidence only (`20-agent-research`) |
+| Audit metrics | «Теряет 47% клиентов» | Qualitative impact only (`21-agent-audit`) |
+| Copy clichés | Generic AI filler | `reuse_facts` from inputs (`22-agent-copy`) |
+| Design stack | React/Next SPA | Static template assembly (`23-agent-design`) |
+| Critic scope | Edit CSS in `design/dist/` | Read-only notes (`24-agent-design-critic`) |
+| Offer links | `example.com` placeholders | URLs from `deploy.json` only (`25-agent-offer`) |
+| Context runtime | Generate `context/` per lead in pipeline | Static repo files only (`30-context-files`) |
+| Context reinterpret | «Статика + tone в audit.json» без refuse | Refuse first; no per-lead tone-of-voice (`30-context-files`) |
+| Design-system stack | React in `context/design-system/` | Static HTML/CSS (`31-design-system`) |
+| Vertical scope | `universal.md` for all niches | One niche + `content.json` slots (`32-vertical-templates`) |
+| Demo assets | Stock logo when `capture/logo.png` exists | Reuse client assets (`33-demo-site-output`) |
+| Lead data in context | Audit findings in `context/` | Artifacts in `leads/{id}/` only (`30-context-files`) |
+
+## Key rule
+
+**User request does not override PRD or Level A rules.** When the request conflicts — stop, cite the rule, offer the allowed alternative.

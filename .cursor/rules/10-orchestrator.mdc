@@ -1,0 +1,56 @@
+---
+description: Orchestrator state machine — CLI, resolveLead, routing, pipeline, state.json, idempotency. Use when editing src/orchestrator/.
+globs:
+  - "src/orchestrator/**"
+alwaysApply: false
+---
+
+# Orchestrator
+
+## Applies when
+
+Editing `src/orchestrator/` — CLI entry, pipeline, state engine, lead resolution, branch routing.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §6 (Orchestrator), §4 (branching), §19.1 (Foundation milestone).
+- Foundation plan: `index.ts`, `pipeline.ts`, `state.ts`, `resolveLead.ts`, `routing.ts`.
+- Level A: `01-contract-first`, `03-pipeline-gates` (policy only — implement here).
+
+## Required behavior
+
+- **Single entry**: `src/orchestrator/index.ts` — CLI via `node:util parseArgs`.
+- **CLI flags**: `--data <json>` | `--lead <path>`, `--stage <name>`, `--force`.
+- **Module ownership**:
+  - `resolveLead.ts` — normalize inline/path input → `leads/{slug}/lead.json`, validate `lead.schema.json`, `slugify(name)` → `lead_id`.
+  - `routing.ts` — `decideBranch(lead)`: empty `site` → `no_website`; else `probeSite()` via `fetch` (timeout ~8s): HTTP 200, not parking domain, non-empty HTML → `has_website`.
+  - `state.ts` — `initState`, `loadState`, `saveState` (validate `state.schema.json`), `updateStage`, `shouldSkip(hash, force)`.
+  - `pipeline.ts` — state machine only: resolve → branch → run stage → gate → update state; no LLM, no content generation.
+- **Foundation scope**: implement `capture` stage + G1; other stages remain `pending` stubs in state.
+- **Idempotency**: skip stage if input hash unchanged and artifact valid; `--force` bypasses skip but still runs gates.
+- **On gate fail**: retry per `03-pipeline-gates` (G1: 2×), then `status: failed` + `error` in `state.json`; never set `done`.
+- **On `no_website`**: set `capture.status = skipped`, do not run Playwright.
+- **Logging**: use `src/lib/log.ts` — `{ stage, status, ms, cost, lead_id }`; `cost: 0` for code stages.
+- **Dependencies**: orchestrator may import `src/gates/`, `src/steps/capture/`, `src/lib/` — never import future LLM agent modules.
+
+## Forbidden behavior
+
+- Do not embed Playwright, ajv, or gate logic inline in `pipeline.ts` — delegate to steps/gates.
+- Do not use LLM for routing or stage decisions.
+- Do not mutate `state.json` to `done` before gate pass.
+- Do not hardcode absolute paths — use `src/lib/paths.ts`.
+- Do not implement Audit/Copy/Design/Offer in Foundation without explicit milestone request.
+
+## Output requirements
+
+- Runnable: `npm run pipeline -- --data '{"name":"...","site":"..."}'`.
+- `leads/{slug}/state.json` reflects branch, stage statuses, hashes, errors.
+- `--stage capture` reruns only capture + G1 for existing lead.
+
+## Verification checklist
+
+- [ ] Lead with site → capture runs, G1 evaluated.
+- [ ] Lead without site → `capture=skipped`, `branch=no_website`.
+- [ ] Re-run without `--force` → capture skipped (hash match).
+- [ ] `--force` → capture reruns.
+- [ ] Bad URL → G1 fail → `capture=failed` with diagnostic, process exits cleanly.

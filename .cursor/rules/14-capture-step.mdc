@@ -1,0 +1,59 @@
+---
+description: Playwright Capture step — screenshots, text extraction, signals, assets, meta.json assembly.
+globs:
+  - "src/steps/capture/**"
+alwaysApply: false
+---
+
+# Capture Step
+
+## Applies when
+
+Editing `src/steps/capture/` — website capture for `has_website` branch.
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`capture/meta.json`), §12 (browser automation).
+- Foundation plan: `index.ts`, `screenshots.ts`, `extract.ts`, `assets.ts`.
+- Level A `01-contract-first`, `02-llm-invariants` (no LLM in capture).
+
+## Required behavior
+
+- **Entry**: `runCapture(lead, leadDir): Promise<string>` in `index.ts` — returns path to `capture/meta.json`.
+- **Browser**: Playwright chromium; one browser instance per run; desktop + mobile contexts.
+- **Screenshots** (`screenshots.ts`):
+  - Desktop: viewport 1440×900, full-page PNG → `capture/desktop.png`.
+  - Mobile: `devices['iPhone 13']`, full-page PNG → `capture/mobile.png`.
+  - `goto(url, { waitUntil: 'networkidle', timeout: 30_000 })`.
+  - Best-effort dismiss cookie banners (click common selectors); do not fail capture solely on banner.
+- **Extract** (`extract.ts`):
+  - `document.body.innerText` → `capture/text.txt`.
+  - Signals in meta: `https`, `mobile_friendly` (viewport meta), `has_form`, `has_cta` (action keywords RU/EN), `tech` (generator meta / Tilda/Wix markers), `title`, `description`, optional `lcp_ms`.
+- **Assets** (`assets.ts`):
+  - Logo: `img` with `logo` in src/alt, else first header image → `capture/logo.png` (optional).
+  - Up to N photos → `capture/photos/*`.
+- **Output**: write `capture/meta.json` with relative paths, `schema_version`, validate via `assertValid` before return.
+- **Error handling**: on navigation failure, still write partial meta with `http_status` and throw/return error for orchestrator retry.
+- **Cost**: stage `cost: 0` in state.
+
+## Forbidden behavior
+
+- Do not use LLM for extraction or signal detection.
+- Do not store full HTML in artifacts — text + signals only.
+- Do not use absolute paths in `meta.json`.
+- Do not launch separate browser per screenshot — reuse instance.
+- Do not run capture when `branch === no_website` (orchestrator responsibility).
+
+## Output requirements
+
+- `leads/{id}/capture/{desktop.png, mobile.png, text.txt, meta.json}` (+ optional logo/photos).
+- `meta.json` validates against `capture-meta.schema.json`.
+- Signals object populated even if optional fields null/omitted per schema.
+
+## Verification checklist
+
+- [ ] Desktop and mobile screenshots non-empty on live site.
+- [ ] `text.txt` ≥ 200 chars on typical business site.
+- [ ] `meta.json` passes schema validation.
+- [ ] No HTML files written to capture dir.
+- [ ] Works with `npm run pipeline` smoke (Foundation verification).

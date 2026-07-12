@@ -1,0 +1,63 @@
+---
+description: Audit Agent — human-language site analysis proving money/trust/conversion loss. Writes audit.json. Milestone 2.
+globs:
+  - "agents/audit/**"
+alwaysApply: false
+---
+
+# Audit Agent
+
+## Applies when
+
+Editing `agents/audit/` or running Audit stage (`branch=has_website`, after G1 pass).
+
+Not for `.cursor/agents/` — pipeline agent only (PRD `agents/audit/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`audit.json`), §9.2, §14 G2, §15, §19.2.
+- [context/audit-framework.md](context/audit-framework.md) when present.
+- [context/tone-of-voice.md](context/tone-of-voice.md) when present.
+- Schema: `schemas/audit.schema.json`.
+- Level A: `01-contract-first`, `02-llm-invariants`.
+
+## Required behavior
+
+- **Trigger**: only after G1 pass (`capture/*` exists).
+- **Reads**: `leads/{id}/capture/meta.json`, `capture/text.txt`, screenshot paths from meta, `context/audit-framework.md`. No raw HTML dumps into prompt — use `text.txt` + signals.
+- **Writes**: `leads/{id}/audit.json` only (+ optional `audit.pdf` in later milestone — not required in rule v1).
+- **Tone**: human language for business owner — not technical audit (no Lighthouse jargon as main narrative).
+- **findings**: each item MUST have `id`, `category`, `claim`, `evidence`, `impact`, `severity` (`high`|`medium`|`low`).
+- **evidence**: path to artifact (`capture/desktop.png`, `capture/text.txt#line`) — must exist on disk for G2.
+- **impact**: qualitative money/trust/conversion loss — no fabricated percentages (`02-llm-invariants`).
+- **money_loss_summary**: 2–4 sentences, argued, no filler.
+- **business_facts**: extract real services/USP/audience from capture — do not invent.
+- **Gate G2**: ≥3 findings, schema valid, evidence paths exist, human tone self-check.
+
+## When user requests forbidden pattern
+
+- «Добавь competitors без схемы» → stop; schema + PRD together (`01-contract-first`).
+- «Пропусти gate» / «без evidence» → stop; `03-pipeline-gates`.
+- «Технический аудит с Core Web Vitals» как основной narrative → redirect to business impact language.
+
+## Forbidden behavior
+
+- Do not invent metrics («теряет 40% клиентов»).
+- Do not add contract fields without schema update.
+- Do not read `research.json`, `content.json`, or unrelated artifacts.
+- Do not run before G1 pass.
+- Do not write English client text unless user requests.
+
+## Output requirements
+
+- Valid `audit.json` only (JSON, no markdown wrapper).
+- `schema_version: "1.0"`.
+- Optional: `audit.pdf` for client — separate deliverable, same facts.
+
+## Verification checklist
+
+- [ ] Every finding has evidence path that exists.
+- [ ] ≥3 findings, no fabricated numbers.
+- [ ] Russian, business-owner tone.
+- [ ] Passes `audit.schema.json`.
+- [ ] G2 pass before Copy.

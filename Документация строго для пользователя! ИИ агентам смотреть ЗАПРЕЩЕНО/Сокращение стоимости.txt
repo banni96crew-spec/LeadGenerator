@@ -1,0 +1,47 @@
+По этапам
+Capture — 0 LLM-токенов. Playwright + код.
+
+Research (только no_website)
+
+Firecrawl/Exa → дистиллят (ниша, услуги, 3 конкурента), не полные страницы
+Лимит: 3–5 источников, ≤2K токенов сырья
+Не класть сырой HTML в промпт
+Audit — самый дорогой после Design
+
+Вход: capture/text.txt (≥200 символов, не HTML) + meta.json + signals
+Скрины: не в vision по умолчанию — evidence как путь (capture/desktop.png#section-2), vision только если G2 не прошёл
+audit-framework.md — короткий чеклист (~1K), не весь PRD
+Выход: 3–5 findings, без money_loss_summary на полстраницы
+Экономия: −40–60% vs «скрины + полный текст + framework»
+G2 critic
+
+Проверять только findings[] + money_loss_summary, не весь capture
+Промпт: «есть ли выдуманные цифры? тон человеческий?» — 200 слов
+Модель: Auto/Haiku
+Copy
+
+Вход: audit.json → только business_facts + findings[].claim/impact (без evidence-путей)
+Vertical: один файл context/verticals/{niche}.md, не design-system
+Выход: слоты content.json, CTA обязателен, без лишних секций
+Экономия: −50% vs передача полного audit + всех verticals
+Design — главный потребитель
+
+Не генерировать сайт с нуля — заполнение слотов шаблона (PRD §0 п.4)
+Вход: content.json + brand_tokens + путь к logo, не весь design-system/ — только нужный vertical-архетип
+Агент пишет build.json + патчит 2–3 файла шаблона, не 20 файлов
+Сборка — код (npm run build), не LLM
+Экономия: −60–80% vs «напиши мне лендинг»
+Design-Critic (G4)
+
+Только 2 preview PNG, сжатые (800px wide)
+Рубрика: 5 бинарных вопросов (CTA виден? mobile ок? бренд узнаваем?)
+Ответ: { pass, issues[] } — ≤300 токенов
+Vision только здесь и опционально в Audit
+Publish — 0 LLM. Cloudflare + smoke-test.
+
+Offer
+
+Вход: money_loss_summary + top-3 findings + demo_url + portfolio.json (3 кейса)
+Не перечитывать audit.json, content.json, билд
+Выход: offer.json + короткий offer.md (≤800 слов)
+G6 tone-check — тот же текст, не весь пакет

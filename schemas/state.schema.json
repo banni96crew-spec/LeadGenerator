@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "state.schema.json",
+  "title": "PipelineState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lead_id", "branch", "stages", "updated_at"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "lead_id": { "type": "string", "minLength": 1 },
+    "branch": {
+      "type": "string",
+      "enum": ["has_website", "no_website"]
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture",
+        "research",
+        "audit",
+        "copy",
+        "design",
+        "publish",
+        "offer"
+      ],
+      "properties": {
+        "capture": { "$ref": "#/$defs/stage" },
+        "research": { "$ref": "#/$defs/stage" },
+        "audit": { "$ref": "#/$defs/stage" },
+        "copy": { "$ref": "#/$defs/stage" },
+        "design": { "$ref": "#/$defs/stage" },
+        "publish": { "$ref": "#/$defs/stage" },
+        "offer": { "$ref": "#/$defs/stage" }
+      }
+    },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "running", "done", "skipped", "failed"]
+        },
+        "hash": { "type": "string" },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "artifact": { "type": "string" },
+        "cost": { "type": "number", "minimum": 0 },
+        "error": { "type": "string" }
+      }
+    }
+  }
+}

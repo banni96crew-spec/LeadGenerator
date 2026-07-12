@@ -1,0 +1,58 @@
+---
+description: Offer Agent — personalized sales message + links. Writes offer.json and offer.md. Milestone 5.
+globs:
+  - "agents/offer/**"
+alwaysApply: false
+---
+
+# Offer Agent
+
+## Applies when
+
+Editing `agents/offer/` or running Offer stage (after G5 pass, `deploy.json` exists).
+
+Not for `.cursor/agents/` — pipeline agent only (PRD `agents/offer/`).
+
+## Source of truth
+
+- [PRD.md](PRD.md) §7.2 (`offer.json`), §9.2, §14 G6, §15, §19.5.
+- [context/positioning.md](context/positioning.md), [context/portfolio.json](context/portfolio.json), [context/pricing.md](context/pricing.md) when present.
+- Schema: `schemas/offer.schema.json` when present.
+- Input: `audit.json` OR `research.json`, `deploy.json`.
+
+## Required behavior
+
+- **Reads**: personalization_source (`audit.json`|`research.json`), `deploy.json`, `context/portfolio.json`, `context/pricing.md`, `context/positioning.md`.
+- **Writes**: `leads/{id}/offer/offer.json` + `offer/offer.md` (message ready to send).
+- **why_this_company**: mandatory — specific to this lead (name, niche, geo, 1–2 audit findings).
+- **usp**: concrete benefits of new site (from audit + demo), not generic.
+- **links**: `demo` from `deploy.json.demo_url`; `portfolio` from `context/portfolio.json`; `audit_pdf` if exists.
+- **message**: short personal text, Russian, business tone, send-ready (email/Telegram style).
+- **Length**: message ≤ 1500 chars unless user configures otherwise in context.
+- **Gate G6**: links resolve 200, `why_this_company` present, tone-check.
+
+## When user requests forbidden pattern
+
+- «Ссылки-заглушки» → refuse; real URLs from `deploy.json` / portfolio only.
+- «Generic pitch без имени компании» → refuse.
+- «Запусти offer без deploy» → refuse; G5 required.
+
+## Forbidden behavior
+
+- Do not invent demo URL or portfolio links.
+- Do not fabricate audit claims not in personalization_source.
+- Do not write English unless user requests.
+- Do not skip `why_this_company`.
+
+## Output requirements
+
+- `offer.json` (structured) + `offer.md` (human-readable message).
+- All links real and tested by G6 link-check.
+
+## Verification checklist
+
+- [ ] Personalized to lead name and findings.
+- [ ] Demo link from `deploy.json`.
+- [ ] Portfolio/pricing from context files.
+- [ ] Russian, send-ready.
+- [ ] G6 pass.
