@@ -21,7 +21,7 @@
 
 ## Vision (mandatory)
 
-Открой **оба** скриншота (`desktop.png`, `mobile.png`) и используй визуальные наблюдения в findings (дизайн, доверие, mobile, CTA). Не ограничивайся только `text.txt`.
+Открой **оба** скриншота (`desktop.png`, `mobile.png`) и используй визуальные наблюдения в findings (дизайн, доверие, мобильная версия, призыв к действию). Не ограничивайся только `text.txt`.
 
 ### Vision hard requirement (no-guess policy)
 
@@ -153,6 +153,37 @@
 * требуется
 
 Пиши обычным человеческим языком.
+
+---
+
+# Человеческий язык (обязательно)
+
+Текст в `claim`, `impact` и `money_loss_summary` должен звучать так, будто его написал живой человек за столом с владельцем бизнеса — **максимально человекоподобно**.
+
+## Аббревиатуры
+
+- Любая латинская аббревиатура при **первом** упоминании — только с расшифровкой на русском в скобках сразу после неё.
+- Формат: `CTA (призыв к действию)`, `SEO (поисковая оптимизация)`.
+- После первой расшифровки ту же аббревиатуру можно использовать без скобок.
+- **Скобки в тексте — только для расшифровки терминов.** Запрещены оговорки, эмоции и пояснения в скобках: «(скептичные)», «(в хорошем смысле)», «(на самом деле)».
+
+## Без англицизмов
+
+- В клиентском тексте **нет английских слов** — только русский.
+- Вместо `landing`, `conversion`, `call-to-action` пиши по-русски: «посадочная страница», «конверсия», «призыв к действию».
+- Если термин неизбежен как аббревиатура — расшифруй при первом упоминании (см. выше).
+
+## Без ИИ-маркеров
+
+Запрещены шаблоны, по которым текст читается как сгенерированный:
+
+- мета-фразы: «как ИИ», «как модель», «в целом», «по сути», «важно отметить»;
+- неестественные вставки в скобках (см. выше);
+- канцелярит и «умные» обороты из списка «Что запрещено писать».
+
+## Проверка перед сохранением
+
+Прочитай каждое поле вслух. Если звучит как отчёт, лекция или шаблон — перепиши проще и конкретнее.
 
 ---
 
@@ -326,7 +357,7 @@ Write `leads/{lead_id}/audit.json`:
     - `capture/desktop.png`
     - `capture/mobile.png`
     - `capture/text.txt#L<start>-L<end>` (line range, inclusive), e.g. `capture/text.txt#L12-L18`
-  - `impact`: money/trust/conversion loss — no fabricated percentages
+  - `impact`: влияние на доверие, заявки и продажи — без выдуманных процентов
   - `severity`: `high` | `medium` | `low`
 - `money_loss_summary`: 2–4 sentences, argued
 - `tone`: optional short label (omit or 1–3 words), e.g. `дружелюбно-деловой`. Do not paste tone rules here.
@@ -341,9 +372,10 @@ Output **valid JSON only** — no markdown wrapper.
 
 1. Every `evidence` path exists on disk (file portion before `#`).
 2. 3–5 findings, categories from enum.
-3. Russian, business-owner tone.
+3. Russian, business-owner tone — no anglicisms, no AI markers, abbreviations expanded on first use.
 4. No invented metrics.
-5. Run mental G2: schema + evidence paths.
+5. Brackets only for term expansions; claim/impact ≤280 chars, money_loss_summary ≤900 chars.
+6. Run mental G2: schema + evidence paths + language checks.
 
 ## After write
 

@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
+import { lintAuditClientText } from "./auditTextLinter.js";
 import { assertValid } from "./validate.js";
 import type { Branch, GateContext, GateResult } from "../lib/types.js";
 
@@ -118,6 +119,14 @@ export function runGateG2(ctx: GateContext, branch: Branch): GateResult {
           )
         );
       }
+    }
+
+    const languageErrors = lintAuditClientText(
+      findings as Array<Record<string, unknown>>,
+      String(data.money_loss_summary ?? "")
+    );
+    for (const reason of languageErrors) {
+      errors.push(formatGateError(ctx, "audit", artifactRel, reason));
     }
   }
 

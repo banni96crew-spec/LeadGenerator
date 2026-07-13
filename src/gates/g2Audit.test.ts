@@ -9,7 +9,8 @@ import type { GateContext } from "../lib/types.js";
 function writeAuditFixture(
   leadDir: string,
   leadId: string,
-  findings: Array<Record<string, unknown>>
+  findings: Array<Record<string, unknown>>,
+  overrides: Record<string, unknown> = {}
 ): void {
   writeFileSync(
     path.join(leadDir, "audit.json"),
@@ -24,11 +25,41 @@ function writeAuditFixture(
         },
         findings,
         money_loss_summary: "Краткое резюме потерь.",
+        ...overrides,
       },
       null,
       2
     )
   );
+}
+
+function validFindings(): Array<Record<string, unknown>> {
+  return [
+    {
+      id: "a-01",
+      category: "доверие",
+      claim: "c1",
+      evidence: "capture/desktop.png",
+      impact: "i1",
+      severity: "high",
+    },
+    {
+      id: "a-02",
+      category: "контент",
+      claim: "c2",
+      evidence: "capture/text.txt#L10-L12",
+      impact: "i2",
+      severity: "medium",
+    },
+    {
+      id: "a-03",
+      category: "конверсия",
+      claim: "c3",
+      evidence: "capture/desktop.png",
+      impact: "i3",
+      severity: "low",
+    },
+  ];
 }
 
 function setupCaptureEvidence(leadDir: string): void {
@@ -210,5 +241,91 @@ describe("runGateG2", () => {
     const result = runGateG2({ lead_id: "test-co", leadDir }, "no_website");
     assert.equal(result.pass, false);
     assert.match(result.errors.join(" "), /research branch not in M2/);
+  });
+
+  it("passes when abbreviation is expanded on first use", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g2-"));
+    setupCaptureEvidence(leadDir);
+    writeAuditFixture(leadDir, "test-co", [
+      {
+        id: "a-01",
+        category: "конверсия",
+        claim: "Главный CTA (призыв к действию) теряется среди блоков.",
+        evidence: "capture/desktop.png",
+        impact: "Часть людей не понимает, куда нажать.",
+        severity: "high",
+      },
+      ...validFindings().slice(1),
+    ]);
+    const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
+    assert.equal(result.pass, true);
+  });
+
+  it("fails when abbreviation is not expanded", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g2-"));
+    setupCaptureEvidence(leadDir);
+    writeAuditFixture(leadDir, "test-co", [
+      {
+        id: "a-01",
+        category: "конверсия",
+        claim: "Главный CTA теряется среди блоков.",
+        evidence: "capture/desktop.png",
+        impact: "Часть людей не понимает, куда нажать.",
+        severity: "high",
+      },
+      ...validFindings().slice(1),
+    ]);
+    const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
+    assert.equal(result.pass, false);
+    assert.match(result.errors.join(" "), /abbreviation not expanded token=CTA/);
+  });
+
+  it("fails on anglicism in client text", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g2-"));
+    setupCaptureEvidence(leadDir);
+    writeAuditFixture(leadDir, "test-co", [
+      {
+        id: "a-01",
+        category: "контент",
+        claim: "На landing странице мало конкретики.",
+        evidence: "capture/desktop.png",
+        impact: "Люди уходят без заявки.",
+        severity: "high",
+      },
+      ...validFindings().slice(1),
+    ]);
+    const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
+    assert.equal(result.pass, false);
+    assert.match(result.errors.join(" "), /anglicism detected word=landing/);
+  });
+
+  it("fails on AI marker in client text", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g2-"));
+    setupCaptureEvidence(leadDir);
+    writeAuditFixture(leadDir, "test-co", [
+      {
+        id: "a-01",
+        category: "доверие",
+        claim: "Текст написан как модель, поэтому не убеждает с первого экрана.",
+        evidence: "capture/desktop.png",
+        impact: "Часть людей уходит без заявки.",
+        severity: "high",
+      },
+      ...validFindings().slice(1),
+    ]);
+    const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
+    assert.equal(result.pass, false);
+    assert.match(result.errors.join(" "), /ai_marker detected/);
+  });
+
+  it("fails on banned phrase", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g2-"));
+    setupCaptureEvidence(leadDir);
+    writeAuditFixture(leadDir, "test-co", validFindings(), {
+      money_loss_summary: "В целом сайт можно усилить.",
+    });
+    const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
+    assert.equal(result.pass, false);
+    assert.match(result.errors.join(" "), /banned_phrase detected phrase=в целом/);
   });
 });

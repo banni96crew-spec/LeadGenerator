@@ -51,7 +51,7 @@ function writeMinimalAudit(leadDir: string, leadId: string): void {
           severity: "low",
         },
       ],
-      money_loss_summary: "summary",
+      money_loss_summary: "Краткое резюме потерь.",
     })
   );
 }
@@ -125,7 +125,7 @@ describe("shouldSkip audit", () => {
             severity: "low",
           },
         ],
-        money_loss_summary: "summary",
+        money_loss_summary: "Краткое резюме потерь.",
       })
     );
     const state = initState(leadId, "has_website");

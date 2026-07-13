@@ -61,7 +61,7 @@ const examples: Array<{ name: string; data: unknown }> = [
         {
           id: "conversion-01",
           category: "конверсия",
-          claim: "Основной CTA теряется среди блоков с рейтингами.",
+          claim: "Основной призыв к действию теряется среди блоков с рейтингами.",
           evidence: "capture/mobile.png",
           impact: "Меньше заявок с мобильного — основной канал для локального бизнеса.",
           severity: "high",
