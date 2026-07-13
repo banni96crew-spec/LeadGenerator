@@ -1,0 +1,21 @@
+<section class="section section--tight" id="proof">
+  <div class="section__inner proof">
+    <div>
+      <p class="section__label">Доказательства</p>
+      <h2 class="section__title">Реальные объекты и отзывы</h2>
+      <ul class="proof-list">
+        {{#social_proof.cases}}
+        <li>{{.}}</li>
+        {{/social_proof.cases}}
+        {{#social_proof.reviews}}
+        <li>{{.}}</li>
+        {{/social_proof.reviews}}
+      </ul>
+    </div>
+    <div class="photo-strip" aria-hidden="true">
+      {{#photos}}
+      <img src="{{src}}" alt="" />
+      {{/photos}}
+    </div>
+  </div>
+</section>

@@ -93,6 +93,59 @@ const examples: Array<{ name: string; data: unknown }> = [
       },
     },
   },
+  {
+    name: "content",
+    data: {
+      schema_version: "1.0",
+      vertical: "renovation",
+      sections: {
+        hero: {
+          headline: "Ремонт квартир под ключ в Москве",
+          subheadline: "Фиксированная смета и сроки до старта работ",
+          cta: "Рассчитать стоимость",
+        },
+        benefits: [
+          { title: "Фиксированная цена", text: "Смета не растёт после старта" },
+          { title: "Сроки в договоре", text: "Штраф за просрочку" },
+          { title: "Гарантия 5 лет", text: "На работы и материалы" },
+        ],
+        social_proof: {
+          cases: ["Квартира 78 м² — 45 дней", "Дизайн и ремонт в одной команде"],
+        },
+        contact: {
+          phone: "+7 (495) 000-00-00",
+          cta: "Оставить заявку",
+        },
+      },
+      reuse_facts: ["Ремонт квартир", "Москва", "Гарантия 5 лет"],
+    },
+  },
+  {
+    name: "design-build",
+    data: {
+      schema_version: "1.0",
+      template: "renovation-v1",
+      brand_tokens: {
+        primary: "#1C2B24",
+        font: "Manrope, system-ui, sans-serif",
+        logo: "assets/logo.png",
+      },
+      build_dir: "design/dist",
+      screens: ["design/preview-desktop.png", "design/preview-mobile.png"],
+      console_errors_count: 0,
+      overflow_mobile: false,
+    },
+  },
+  {
+    name: "critic",
+    data: {
+      schema_version: "1.0",
+      pass: true,
+      gate: "G4",
+      scores: { trust: 4, modern: 5, sellable: 4, readable: 5 },
+      notes: ["Герой читается сразу", "Логотип клиента на месте"],
+    },
+  },
 ];
 
 let failed = 0;

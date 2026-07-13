@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "design-build.schema.json",
+  "title": "DesignBuild",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "template",
+    "brand_tokens",
+    "build_dir",
+    "screens"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "template": {
+      "type": "string",
+      "minLength": 1
+    },
+    "brand_tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "font"],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "font": {
+          "type": "string",
+          "minLength": 1
+        },
+        "logo": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "build_dir": {
+      "type": "string",
+      "const": "design/dist"
+    },
+    "screens": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "console_errors_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "overflow_mobile": {
+      "type": "boolean"
+    }
+  }
+}

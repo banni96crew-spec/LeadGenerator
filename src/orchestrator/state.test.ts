@@ -185,6 +185,57 @@ function doneCaptureState(branch: "has_website" | "no_website"): PipelineState {
   return state;
 }
 
+describe("shouldSkip copy", () => {
+  it("skips when done, audit hash matches, and G3 passes", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-copy-"));
+    const leadId = "copy-skip";
+    writeFileSync(
+      path.join(leadDir, "content.json"),
+      JSON.stringify({
+        schema_version: "1.0",
+        vertical: "renovation",
+        sections: {
+          hero: {
+            headline: "Ремонт квартир",
+            subheadline: "Смета",
+            cta: "Рассчитать",
+          },
+          benefits: [
+            { title: "A", text: "a" },
+            { title: "B", text: "b" },
+            { title: "C", text: "c" },
+          ],
+          social_proof: { cases: ["Кейс"] },
+          contact: { phone: "+7", cta: "Заявка" },
+        },
+        reuse_facts: ["факт"],
+      })
+    );
+    const state = initState(leadId, "has_website");
+    state.stages.audit = {
+      status: "done",
+      hash: "aud-1",
+      artifact: "audit.json",
+    };
+    state.stages.copy = {
+      status: "done",
+      hash: "aud-1",
+      artifact: "content.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.copy,
+        "aud-1",
+        false,
+        leadId,
+        leadDir,
+        "copy"
+      ),
+      true
+    );
+  });
+});
+
 describe("migrateBranchState", () => {
   it("preserves done capture when branch changes", () => {
     const state = doneCaptureState("has_website");

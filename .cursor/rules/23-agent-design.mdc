@@ -22,8 +22,9 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 
 ## Required behavior
 
+- **MUST**: follow [premium-website-designer](../skills/premium-website-designer/SKILL.md) **static-assembly** path (Silence/Typography/Grid/CSS motion). Orchestrator owns render-preview — agent does not trigger Playwright.
 - **Reads**: `content.json`, `context/design-system/*`, one vertical template, `capture/logo.png` (if exists) for brand tokens.
-- **Writes**: `leads/{id}/design/dist/` (static build), `design/build.json`, triggers `preview-desktop.png` + `preview-mobile.png` (via render-preview skill/step).
+- **Writes**: `leads/{id}/design/dist/` (static build), `design/build.json` only (previews via orchestrator `runDesignGate`).
 - **Assembly only**: map `content.json` slots into template — do NOT generate arbitrary CSS/layout from scratch.
 - **brand_tokens**: from capture logo + design-system defaults (`primary`, `font`, `logo` path).
 - **template**: name recorded in `build.json` (e.g. `renovation-v2`).

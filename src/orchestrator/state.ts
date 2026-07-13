@@ -3,6 +3,8 @@ import path from "node:path";
 import { assertValid } from "../gates/validate.js";
 import { auditArtifactIsValid } from "../lib/auditArtifacts.js";
 import { captureArtifactIsValid } from "../lib/captureArtifacts.js";
+import { contentArtifactIsValid } from "../lib/contentArtifacts.js";
+import { designArtifactIsValid } from "../lib/designArtifacts.js";
 import { stateFile } from "../lib/paths.js";
 import {
   ALL_STAGES,
@@ -94,12 +96,22 @@ export function shouldSkip(
   if (stage.hash !== inputsHash) return false;
   if (!stage.artifact) return false;
 
+  const ctx = { lead_id: leadId, leadDir };
+
   if (stageName === "capture") {
-    return captureArtifactIsValid({ lead_id: leadId, leadDir });
+    return captureArtifactIsValid(ctx);
   }
 
   if (stageName === "audit") {
-    return auditArtifactIsValid({ lead_id: leadId, leadDir }, "has_website");
+    return auditArtifactIsValid(ctx, "has_website");
+  }
+
+  if (stageName === "copy") {
+    return contentArtifactIsValid(ctx);
+  }
+
+  if (stageName === "design") {
+    return designArtifactIsValid(ctx);
   }
 
   const artifactPath = path.join(leadDir, stage.artifact);

@@ -26,12 +26,12 @@ Editing `src/orchestrator/` — CLI entry, pipeline, state engine, lead resoluti
   - `routing.ts` — `decideBranch(lead)`: empty `site` → `no_website`; else `probeSite()` via `fetch` (timeout ~8s): HTTP 200, not parking domain, non-empty HTML → `has_website`.
   - `state.ts` — `initState`, `loadState`, `saveState` (validate `state.schema.json`), `updateStage`, `shouldSkip(hash, force)`.
   - `pipeline.ts` — state machine only: resolve → branch → run stage → gate → update state; no LLM, no content generation.
-- **Foundation scope**: implement `capture` stage + G1; other stages remain `pending` stubs in state.
+- **Foundation + M2 + M3 scope**: implement `capture|audit|copy|design` stages + G1–G4; research/publish/offer remain later milestones.
 - **Idempotency**: skip stage if input hash unchanged and artifact valid; `--force` bypasses skip but still runs gates.
-- **On gate fail**: retry per `03-pipeline-gates` (G1: 2×), then `status: failed` + `error` in `state.json`; never set `done`.
+- **On gate fail**: retry per `03-pipeline-gates`, then `status: failed` + `error` in `state.json`; never set `done`.
 - **On `no_website`**: set `capture.status = skipped`, do not run Playwright.
 - **Logging**: use `src/lib/log.ts` — `{ stage, status, ms, cost, lead_id }`; `cost: 0` for code stages.
-- **Dependencies**: orchestrator may import `src/gates/`, `src/steps/capture/`, `src/lib/` — never import future LLM agent modules.
+- **Dependencies**: orchestrator may import `src/gates/`, `src/steps/`, `src/lib/` — never import future LLM agent modules.
 
 ## Forbidden behavior
 

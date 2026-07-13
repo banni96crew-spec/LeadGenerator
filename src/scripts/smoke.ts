@@ -312,6 +312,76 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
       force: true,
     });
   }
+
+  const contentPath = path.join(leadDir("domeo"), "content.json");
+  const contentAwait = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "copy",
+  });
+  if (!existsSync(contentPath)) {
+    record(
+      "copy_awaiting_exit_3",
+      contentAwait.exitCode === 3 &&
+        contentAwait.state.stages.copy.status === "pending",
+      `exit=${contentAwait.exitCode}`
+    );
+
+    writeFileSync(
+      contentPath,
+      JSON.stringify({
+        schema_version: "1.0",
+        vertical: "renovation",
+        sections: {
+          hero: {
+            headline: "Ремонт квартир под ключ",
+            subheadline: "Фиксированная смета до старта",
+            cta: "Получить расчёт",
+          },
+          benefits: [
+            { title: "Смета", text: "Не растёт после старта" },
+            { title: "Сроки", text: "В договоре" },
+            { title: "Гарантия", text: "На работы" },
+          ],
+          social_proof: { cases: ["Прозрачный план работ"] },
+          contact: { phone: "+7 (495) 000-00-00", cta: "Оставить заявку" },
+        },
+        reuse_facts: ["Ремонт квартир", "Москва"],
+      })
+    );
+  } else {
+    record("copy_awaiting_exit_3", true, "content.json already present — skip");
+  }
+
+  const copyRun = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "copy",
+  });
+  record(
+    "copy_valid_done",
+    copyRun.exitCode === 0 && copyRun.state.stages.copy.status === "done",
+    `exit=${copyRun.exitCode} copy=${copyRun.state.stages.copy.status}`
+  );
+
+  const designAwait = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "design",
+  });
+  const hasDist = existsSync(
+    path.join(leadDir("domeo"), "design", "dist", "index.html")
+  );
+  if (!hasDist) {
+    record(
+      "design_awaiting_build_exit_3",
+      designAwait.exitCode === 3,
+      `exit=${designAwait.exitCode}`
+    );
+  } else {
+    record(
+      "design_awaiting_build_exit_3",
+      true,
+      "dist present — skip awaiting build"
+    );
+  }
 } else {
   record("branch_sticky", false, "leads/domeo fixture missing");
   record("idempotency_skip", false, "leads/domeo fixture missing");
@@ -325,6 +395,9 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
   record("audit_force_regate", false, "leads/domeo fixture missing");
   record("audit_invalid_failed", false, "leads/domeo fixture missing");
   record("audit_awaiting_exit_3", false, "leads/domeo fixture missing");
+  record("copy_awaiting_exit_3", false, "leads/domeo fixture missing");
+  record("copy_valid_done", false, "leads/domeo fixture missing");
+  record("design_awaiting_build_exit_3", false, "leads/domeo fixture missing");
 }
 
 const example = await runPipeline({

@@ -6,6 +6,8 @@
     "pipeline": "tsx src/orchestrator/index.ts",
     "capture": "tsx src/orchestrator/index.ts -- --stage capture",
     "audit": "tsx src/orchestrator/index.ts -- --stage audit",
+    "copy": "tsx src/orchestrator/index.ts -- --stage copy",
+    "design": "tsx src/orchestrator/index.ts -- --stage design",
     "validate-schemas": "tsx src/scripts/validate-schemas.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "test": "tsx --test src/**/*.test.ts",

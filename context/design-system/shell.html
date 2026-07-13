@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{brand.name}} — демо</title>
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="base.css" />
+    <style>
+      :root {
+        --color-primary: {{brand.primary}};
+        --font-sans: {{brand.font}};
+        --font-display: {{brand.font}};
+      }
+    </style>
+  </head>
+  <body>
+    <!-- partial: hero -->
+    <header class="site-header">
+      {{#brand.logo}}
+      <img class="site-logo" src="{{brand.logo}}" alt="{{brand.name}}" />
+      {{/brand.logo}}
+      {{^brand.logo}}
+      <span class="site-logo--text">{{brand.name}}</span>
+      {{/brand.logo}}
+      <a class="btn btn--ghost" href="#contact" style="border-color: var(--color-border); color: var(--color-ink);">{{contact.cta}}</a>
+    </header>
+
+    <section class="hero">
+      {{#photos.0}}
+      <div class="hero__media" aria-hidden="true">
+        <img src="{{photos.0}}" alt="" />
+      </div>
+      {{/photos.0}}
+      <div class="hero__content">
+        <div class="hero__brand reveal">
+          {{#brand.logo}}
+          <img src="{{brand.logo}}" alt="" />
+          {{/brand.logo}}
+        </div>
+        <h1 class="hero__title reveal">{{hero.headline}}</h1>
+        <p class="hero__sub reveal reveal--delay">{{hero.subheadline}}</p>
+        <a class="btn reveal reveal--delay" href="#contact">{{hero.cta}}</a>
+      </div>
+    </section>
+
+    <!-- partial: benefits -->
+    <section class="section" id="benefits">
+      <div class="section__inner">
+        <p class="section__label">Преимущества</p>
+        <h2 class="section__title">Почему с нами спокойнее</h2>
+        <div class="benefits-grid">
+          {{#benefits}}
+          <article class="benefit">
+            <h3 class="benefit__title">{{title}}</h3>
+            <p class="benefit__text">{{text}}</p>
+          </article>
+          {{/benefits}}
+        </div>
+      </div>
+    </section>
+
+    <!-- partial: social_proof -->
+    <section class="section section--tight" id="proof">
+      <div class="section__inner proof">
+        <div>
+          <p class="section__label">Доказательства</p>
+          <h2 class="section__title">Реальные объекты и отзывы</h2>
+          <ul class="proof-list">
+            {{#social_proof.cases}}
+            <li>{{.}}</li>
+            {{/social_proof.cases}}
+            {{#social_proof.reviews}}
+            <li>{{.}}</li>
+            {{/social_proof.reviews}}
+          </ul>
+        </div>
+        <div class="photo-strip" aria-hidden="true">
+          {{#photos}}
+          <img src="{{src}}" alt="" />
+          {{/photos}}
+        </div>
+      </div>
+    </section>
+
+    <!-- partial: contact -->
+    <section class="section contact" id="contact">
+      <div class="section__inner">
+        <p class="section__label">Контакты</p>
+        <h2 class="section__title">Обсудим ваш объект</h2>
+        <div class="contact__row">
+          <a class="contact__phone" href="tel:{{contact.phone_digits}}">{{contact.phone}}</a>
+          <a class="btn" href="tel:{{contact.phone_digits}}">{{contact.cta}}</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- partial: footer -->
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span>{{brand.name}}</span>
+        <span>Демо-версия сайта</span>
+      </div>
+    </footer>
+  </body>
+</html>

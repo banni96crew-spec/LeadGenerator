@@ -1,0 +1,27 @@
+<header class="site-header">
+  {{#brand.logo}}
+  <img class="site-logo" src="{{brand.logo}}" alt="" />
+  {{/brand.logo}}
+  {{^brand.logo}}
+  <span class="site-logo--text">{{brand.name}}</span>
+  {{/brand.logo}}
+  <a class="btn btn--ghost" href="#contact" style="border-color: var(--color-border); color: var(--color-ink);">{{contact.cta}}</a>
+</header>
+
+<section class="hero">
+  {{#photos.0}}
+  <div class="hero__media" aria-hidden="true">
+    <img src="{{photos.0}}" alt="" />
+  </div>
+  {{/photos.0}}
+  <div class="hero__content">
+    <div class="hero__brand reveal">
+      {{#brand.logo}}
+      <img src="{{brand.logo}}" alt="" />
+      {{/brand.logo}}
+    </div>
+    <h1 class="hero__title reveal">{{hero.headline}}</h1>
+    <p class="hero__sub reveal reveal--delay">{{hero.subheadline}}</p>
+    <a class="btn reveal reveal--delay" href="#contact">{{hero.cta}}</a>
+  </div>
+</section>

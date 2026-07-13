@@ -1,0 +1,23 @@
+:root {
+  /* Brand — overridden at build via brand_tokens */
+  --color-primary: #1c2b24;
+  --color-primary-soft: #2d4036;
+  --color-ink: #121714;
+  --color-muted: #5c6b62;
+  --color-surface: #f4f1eb;
+  --color-surface-elevated: #fffcf7;
+  --color-border: rgba(28, 43, 36, 0.12);
+  --color-accent-line: rgba(28, 43, 36, 0.08);
+
+  --font-sans: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Manrope", "Segoe UI", system-ui, sans-serif;
+
+  --text-body: 1.125rem;
+  --text-body-lh: 1.6;
+  --space-section: clamp(4.5rem, 10vw, 8rem);
+  --space-block: clamp(1.25rem, 3vw, 2rem);
+  --max-prose: 38rem;
+  --max-content: 72rem;
+  --radius-sm: 2px;
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+}

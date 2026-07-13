@@ -21,6 +21,9 @@
 | `state.json` | `schemas/state.schema.json` |
 | `capture/meta.json` | `schemas/capture-meta.schema.json` |
 | `audit.json` | `schemas/audit.schema.json` |
+| `content.json` | `schemas/content.schema.json` |
+| `design/build.json` | `schemas/design-build.schema.json` |
+| `design/critic.json` | `schemas/critic.schema.json` |
 
 - `schema_version: "1.0"` обязателен
 - `additionalProperties: false` (кроме `lead.raw`)
@@ -52,7 +55,7 @@ Skip стадии только если:
 
 1. `status === done`
 2. hash входов совпал
-3. артефакт существует и проходит gate (capture — G1; audit — G2)
+3. артефакт существует и проходит gate (capture — G1; audit — G2; copy — G3; design — G4)
 
 После `failed` повторный запуск **не** skip. `--force` всегда перезапускает.
 
@@ -90,6 +93,33 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 **Capture invalidation:** если capture перезапущен с новым hash — audit сбрасывается в `pending` (очищаются hash, artifact, error).
 
 **Retry A1:** без auto-retry цикла в коде; каждый CLI-вызов при G2 fail увеличивает `attempts`. Исправление = агент правит `audit.json` + повтор CLI.
+
+## Gate G3 (Copy, M3)
+
+После Copy. Precondition: `audit.status === done` (`has_website`) или `research.status === done` (`no_website`).
+
+**Code checks:** schema; hero+contact CTA; benefits ≥3; social_proof не пуст; Russian heuristic; vertical non-empty.
+
+**A1:** агент пишет `content.json` → `npm run pipeline -- --lead … --stage copy`. Exit `3` = awaiting content.json. Max attempts `G3_MAX_ATTEMPTS=2`.
+
+**Hash:** `copy.hash` = upstream (`audit.hash` или `research.hash`). Успешный copy → invalidate design.
+
+## Gate G4 (Design + Design-Critic, M3)
+
+После Design. Precondition: `copy.status === done`.
+
+**A1 three-step:**
+1. Design agent (MUST `premium-website-designer` static-assembly) пишет `design/dist/` + `build.json`
+2. `--stage design` → orchestrator **всегда** `renderPreview` → G4 code; если нет `critic.json` → exit **3** awaiting critic
+3. Design-Critic пишет `design/critic.json` → `--stage design` → full G4
+
+**Code checks:** `index.html`; `build.json` schema; previews >5KB; `console_errors_count=0`; `overflow_mobile !== true`.
+
+**Critic:** schema; `pass=true`; scores trust/modern/sellable/readable все ≥4.
+
+**Hash:** `design.hash` = `copy.hash`. Template id: `renovation-v1`. Assembly: A1 agent only (нет `assemble.ts`); slots `{{hero.headline}}` etc.
+
+**Premium:** Design использует skill `premium-website-designer` → `static-assembly.md` (не Next). Orchestrator owns Playwright previews.
 
 ## Минимальный контекст между стадиями
 
