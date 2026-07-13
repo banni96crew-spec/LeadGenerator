@@ -20,6 +20,7 @@
 | `lead.json` | `schemas/lead.schema.json` |
 | `state.json` | `schemas/state.schema.json` |
 | `capture/meta.json` | `schemas/capture-meta.schema.json` |
+| `audit.json` | `schemas/audit.schema.json` |
 
 - `schema_version: "1.0"` обязателен
 - `additionalProperties: false` (кроме `lead.raw`)
@@ -51,7 +52,7 @@ Skip стадии только если:
 
 1. `status === done`
 2. hash входов совпал
-3. артефакт существует и проходит gate (для capture — G1)
+3. артефакт существует и проходит gate (capture — G1; audit — G2)
 
 После `failed` повторный запуск **не** skip. `--force` всегда перезапускает.
 
@@ -62,6 +63,33 @@ Skip стадии только если:
 ```
 lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 required>5120
 ```
+
+## Gate G2 (Audit, M2)
+
+После стадии Audit (`has_website`, capture `done`).
+
+**Code checks:**
+- `audit.json` валиден по схеме
+- `lead_id` совпадает с лидом
+- `findings.length >= 3`
+- каждый `evidence` — путь под `capture/` (без `../`), файл существует (фрагмент `#Lnn` отбрасывается)
+
+**Precondition:** `state.stages.capture.status === done`.
+
+**A1 two-step seam:**
+1. Cursor-агент пишет `audit.json` (vision + text + signals) по `agents/audit/PROMPT.md`
+2. `npm run pipeline -- --lead leads/{id} --stage audit` — G2 + обновление `state.json`
+
+**Exit codes (`--stage audit`):**
+- `0` — done или idempotent skip или audit skipped (`no_website`)
+- `1` — failed (capture not done, G2 fail)
+- `3` — `audit.json` отсутствует, `audit.status=pending` (awaiting agent)
+
+**Идемпотентность audit:** hash стадии = **hash capture** (`state.stages.capture.hash`), не hash `audit.json`. Skip только если `audit.status=done`, hash совпал с capture и G2 pass (`auditArtifactIsValid`).
+
+**Capture invalidation:** если capture перезапущен с новым hash — audit сбрасывается в `pending` (очищаются hash, artifact, error).
+
+**Retry A1:** без auto-retry цикла в коде; каждый CLI-вызов при G2 fail увеличивает `attempts`. Исправление = агент правит `audit.json` + повтор CLI.
 
 ## Минимальный контекст между стадиями
 

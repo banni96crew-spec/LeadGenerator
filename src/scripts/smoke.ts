@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { runPipeline } from "../orchestrator/pipeline.js";
 import { initState } from "../orchestrator/state.js";
@@ -73,15 +73,26 @@ const noSite = await runPipeline({
   resolveInput: { kind: "data", data: { name: "NoSite Co" } },
 });
 const noSiteState = loadState(noSite.state.lead_id);
-record(
-  "no_website",
-  noSite.exitCode === 0 &&
-    noSiteState.branch === "no_website" &&
-    noSiteState.stages.capture.status === "skipped" &&
-    noSiteState.stages.research.status === "pending" &&
-    noSiteState.stages.audit.status === "skipped",
-  `branch=${noSiteState.branch}`
-);
+  record(
+    "no_website",
+    noSite.exitCode === 0 &&
+      noSiteState.branch === "no_website" &&
+      noSiteState.stages.capture.status === "skipped" &&
+      noSiteState.stages.research.status === "pending" &&
+      noSiteState.stages.audit.status === "skipped",
+    `branch=${noSiteState.branch}`
+  );
+
+  const noSiteAudit = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir(noSite.state.lead_id) },
+    stage: "audit",
+  });
+  record(
+    "audit_skipped_no_website",
+    noSiteAudit.exitCode === 0 &&
+      noSiteAudit.state.stages.audit.status === "skipped",
+    `audit=${noSiteAudit.state.stages.audit.status}`
+  );
 
 record(
   "branch_matrix_no_website",
@@ -196,6 +207,111 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
     !("brand_hints" in domeoMeta),
     "no brand_hints in meta"
   );
+
+  const auditRun = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "audit",
+  });
+  const domeoAfterAudit = loadState("domeo");
+  record(
+    "audit_valid_done",
+    auditRun.exitCode === 0 && domeoAfterAudit.stages.audit.status === "done",
+    `exit=${auditRun.exitCode} audit=${domeoAfterAudit.stages.audit.status}`
+  );
+
+  const auditIdem = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "audit",
+  });
+  record(
+    "audit_idempotency_skip",
+    auditIdem.exitCode === 0 && auditIdem.state.stages.audit.status === "done",
+    "re-run audit without force"
+  );
+
+  const auditForce = await runPipeline({
+    resolveInput: { kind: "lead", path: leadDir("domeo") },
+    stage: "audit",
+    force: true,
+  });
+  record(
+    "audit_force_regate",
+    auditForce.exitCode === 0 && auditForce.state.stages.audit.status === "done",
+    "force re-runs G2"
+  );
+
+  const auditPath = path.join(leadDir("domeo"), "audit.json");
+  const auditBackup = readFileSync(auditPath, "utf8");
+  try {
+    writeFileSync(
+      auditPath,
+      JSON.stringify({
+        schema_version: "1.0",
+        lead_id: "domeo",
+        business_facts: { services: ["x"], usp_existing: ["y"], audience: "z" },
+        findings: [
+          {
+            id: "f1",
+            category: "доверие",
+            claim: "c",
+            evidence: "capture/desktop.png",
+            impact: "i",
+            severity: "low",
+          },
+          {
+            id: "f2",
+            category: "контент",
+            claim: "c2",
+            evidence: "capture/text.txt",
+            impact: "i2",
+            severity: "low",
+          },
+        ],
+        money_loss_summary: "bad",
+      })
+    );
+    const auditInvalid = await runPipeline({
+      resolveInput: { kind: "lead", path: leadDir("domeo") },
+      stage: "audit",
+      force: true,
+    });
+    record(
+      "audit_invalid_failed",
+      auditInvalid.exitCode === 1 &&
+        auditInvalid.state.stages.audit.status === "failed",
+      `status=${auditInvalid.state.stages.audit.status}`
+    );
+  } finally {
+    writeFileSync(auditPath, auditBackup);
+    await runPipeline({
+      resolveInput: { kind: "lead", path: leadDir("domeo") },
+      stage: "audit",
+      force: true,
+    });
+  }
+
+  const auditPathAwait = path.join(leadDir("domeo"), "audit.json");
+  const auditBackupAwait = readFileSync(auditPathAwait, "utf8");
+  try {
+    unlinkSync(auditPathAwait);
+    const awaitingRun = await runPipeline({
+      resolveInput: { kind: "lead", path: leadDir("domeo") },
+      stage: "audit",
+    });
+    record(
+      "audit_awaiting_exit_3",
+      awaitingRun.exitCode === 3 &&
+        awaitingRun.state.stages.audit.status === "pending",
+      `exit=${awaitingRun.exitCode}`
+    );
+  } finally {
+    writeFileSync(auditPathAwait, auditBackupAwait);
+    await runPipeline({
+      resolveInput: { kind: "lead", path: leadDir("domeo") },
+      stage: "audit",
+      force: true,
+    });
+  }
 } else {
   record("branch_sticky", false, "leads/domeo fixture missing");
   record("idempotency_skip", false, "leads/domeo fixture missing");
@@ -204,6 +320,11 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
   record("branch_matrix_has_website", false, "leads/domeo fixture missing");
   record("domeo_done", false, "leads/domeo fixture missing");
   record("domeo_meta", false, "leads/domeo fixture missing");
+  record("audit_valid_done", false, "leads/domeo fixture missing");
+  record("audit_idempotency_skip", false, "leads/domeo fixture missing");
+  record("audit_force_regate", false, "leads/domeo fixture missing");
+  record("audit_invalid_failed", false, "leads/domeo fixture missing");
+  record("audit_awaiting_exit_3", false, "leads/domeo fixture missing");
 }
 
 const example = await runPipeline({

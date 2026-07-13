@@ -3,6 +3,7 @@ import path from "node:path";
 import { hashInputs } from "../lib/hash.js";
 import { logStage } from "../lib/log.js";
 import { runGateG1 } from "../gates/g1Capture.js";
+import { runGateG2 } from "../gates/g2Audit.js";
 import {
   leadFile,
   normalizeSiteUrl,
@@ -26,6 +27,9 @@ import type { Lead, PipelineState, StageName } from "../lib/types.js";
 
 // G1_MAX_ATTEMPTS=3: 1 primary capture + 2 retries per CONVENTIONS
 const G1_MAX_ATTEMPTS = 3;
+// G2 audit gate-only invocations (A1: agent fixes audit.json between runs)
+const G2_MAX_ATTEMPTS = 3;
+const EXIT_AWAITING_AUDIT = 3;
 
 export type PipelineOptions = {
   resolveInput: ResolveInput;
@@ -70,16 +74,46 @@ function sitesEqual(
   return previous === current;
 }
 
-function formatGateErrors(leadId: string, errors: string[]): string {
+function formatGateErrors(
+  leadId: string,
+  stage: string,
+  gate: string,
+  errors: string[]
+): string {
   return (
     errors.join("; ") ||
-    `lead_id=${leadId} stage=capture gate=G1 reason=unknown`
+    `lead_id=${leadId} stage=${stage} gate=${gate} reason=unknown`
   );
 }
 
 function formatCaptureError(leadId: string, err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
   return `lead_id=${leadId} stage=capture reason=${message}`;
+}
+
+function invalidateAudit(state: PipelineState): void {
+  updateStage(state, "audit", {
+    status: "pending",
+    hash: undefined,
+    artifact: undefined,
+    error: undefined,
+    attempts: undefined,
+    cost: undefined,
+  });
+}
+
+function syncAuditWithCaptureHash(state: PipelineState): void {
+  const captureHash = state.stages.capture.hash;
+  const auditStage = state.stages.audit;
+  if (
+    !captureHash ||
+    !auditStage.hash ||
+    auditStage.hash === captureHash ||
+    (auditStage.status !== "done" && auditStage.status !== "failed")
+  ) {
+    return;
+  }
+  invalidateAudit(state);
 }
 
 async function runCaptureWithGate(
@@ -91,6 +125,7 @@ async function runCaptureWithGate(
   const stageName: StageName = "capture";
   const inputHash = hashInputs(lead);
   const metaPath = path.join(leadDir, "capture", "meta.json");
+  const previousCaptureHash = state.stages.capture.hash;
 
   if (state.branch === "no_website") {
     updateStage(state, stageName, { status: "skipped" });
@@ -179,6 +214,14 @@ async function runCaptureWithGate(
           cost: 0,
           error: undefined,
         });
+        if (
+          previousCaptureHash &&
+          previousCaptureHash !== inputHash &&
+          (state.stages.audit.status === "done" ||
+            state.stages.audit.status === "failed")
+        ) {
+          invalidateAudit(state);
+        }
         saveState(state);
         logStage({
           lead_id: lead.lead_id,
@@ -190,7 +233,12 @@ async function runCaptureWithGate(
         return { state, exitCode: 0 };
       }
 
-      lastError = formatGateErrors(lead.lead_id, gate.errors);
+      lastError = formatGateErrors(
+        lead.lead_id,
+        "capture",
+        "G1",
+        gate.errors
+      );
       logStage({
         lead_id: lead.lead_id,
         stage: stageName,
@@ -212,6 +260,148 @@ async function runCaptureWithGate(
   });
   saveState(state);
   return { state, exitCode: 1 };
+}
+
+function runAuditGate(
+  lead: Lead,
+  leadDir: string,
+  state: PipelineState,
+  force: boolean
+): { state: PipelineState; exitCode: number } {
+  const stageName: StageName = "audit";
+  const auditPath = path.join(leadDir, "audit.json");
+
+  if (state.branch === "no_website") {
+    updateStage(state, stageName, { status: "skipped" });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "skipped",
+      cost: 0,
+      message: "no_website branch",
+    });
+    return { state, exitCode: 0 };
+  }
+
+  if (state.stages.capture.status !== "done") {
+    const error = `lead_id=${lead.lead_id} stage=audit reason=capture not done`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "failed",
+      message: error,
+    });
+    return { state, exitCode: 1 };
+  }
+
+  syncAuditWithCaptureHash(state);
+
+  if (state.stages[stageName].status === "running" && !force) {
+    updateStage(state, stageName, { status: "pending" });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "reset",
+      cost: 0,
+      message: "stale running reset to pending",
+    });
+  }
+
+  const inputHash = state.stages.capture.hash;
+  if (!inputHash) {
+    const error = `lead_id=${lead.lead_id} stage=audit reason=capture hash missing`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    return { state, exitCode: 1 };
+  }
+
+  if (!existsSync(auditPath)) {
+    updateStage(state, stageName, { status: "pending", error: undefined });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "awaiting",
+      cost: 0,
+      message: "awaiting audit.json (agents/audit/PROMPT.md)",
+    });
+    return { state, exitCode: EXIT_AWAITING_AUDIT };
+  }
+
+  if (
+    shouldSkip(
+      state.stages[stageName],
+      inputHash,
+      force,
+      lead.lead_id,
+      leadDir,
+      stageName
+    )
+  ) {
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "skipped",
+      cost: 0,
+      message: "idempotent skip",
+    });
+    return { state, exitCode: 0 };
+  }
+
+  const started = Date.now();
+  const attempts = (state.stages[stageName].attempts ?? 0) + 1;
+  updateStage(state, stageName, {
+    status: "running",
+    attempts,
+    error: undefined,
+  });
+  saveState(state);
+
+  const gate = runGateG2({ lead_id: lead.lead_id, leadDir }, state.branch);
+
+  if (gate.pass) {
+    updateStage(state, stageName, {
+      status: "done",
+      artifact: "audit.json",
+      hash: inputHash,
+      cost: 0,
+      error: undefined,
+    });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "done",
+      ms: Date.now() - started,
+      cost: 0,
+    });
+    return { state, exitCode: 0 };
+  }
+
+  const lastError = formatGateErrors(
+    lead.lead_id,
+    "audit",
+    "G2",
+    gate.errors
+  );
+  updateStage(state, stageName, {
+    status: "failed",
+    attempts,
+    error: lastError,
+  });
+  saveState(state);
+  logStage({
+    lead_id: lead.lead_id,
+    stage: stageName,
+    status: "gate_fail",
+    ms: Date.now() - started,
+    message: lastError,
+  });
+  return { state, exitCode: attempts >= G2_MAX_ATTEMPTS ? 1 : 1 };
 }
 
 export async function runPipeline(
@@ -257,11 +447,16 @@ export async function runPipeline(
   }
 
   const targetStage = options.stage ?? "capture";
-  if (targetStage !== "capture") {
-    throw new Error(
-      `Foundation milestone only implements capture stage (got ${targetStage})`
-    );
-  }
+  const force = options.force ?? false;
 
-  return runCaptureWithGate(lead, leadDir, state, options.force ?? false);
+  switch (targetStage) {
+    case "capture":
+      return runCaptureWithGate(lead, leadDir, state, force);
+    case "audit":
+      return runAuditGate(lead, leadDir, state, force);
+    default:
+      throw new Error(
+        `M2 milestone implements capture and audit stages (got ${targetStage})`
+      );
+  }
 }

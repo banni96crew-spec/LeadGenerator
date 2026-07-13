@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { assertValid } from "../gates/validate.js";
+import { auditArtifactIsValid } from "../lib/auditArtifacts.js";
 import { captureArtifactIsValid } from "../lib/captureArtifacts.js";
 import { stateFile } from "../lib/paths.js";
 import {
@@ -95,6 +96,10 @@ export function shouldSkip(
 
   if (stageName === "capture") {
     return captureArtifactIsValid({ lead_id: leadId, leadDir });
+  }
+
+  if (stageName === "audit") {
+    return auditArtifactIsValid({ lead_id: leadId, leadDir }, "has_website");
   }
 
   const artifactPath = path.join(leadDir, stage.artifact);

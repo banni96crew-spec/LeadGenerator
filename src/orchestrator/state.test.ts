@@ -1,10 +1,177 @@
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 import {
   initState,
   migrateBranchState,
+  shouldSkip,
 } from "./state.js";
 import type { PipelineState, StageName } from "../lib/types.js";
+
+function writeMinimalAudit(leadDir: string, leadId: string): void {
+  const captureDir = path.join(leadDir, "capture");
+  mkdirSync(captureDir, { recursive: true });
+  writeFileSync(path.join(captureDir, "desktop.png"), Buffer.alloc(6000, 1));
+  writeFileSync(path.join(captureDir, "text.txt"), "x".repeat(250));
+  writeFileSync(
+    path.join(leadDir, "audit.json"),
+    JSON.stringify({
+      schema_version: "1.0",
+      lead_id: leadId,
+      business_facts: {
+        services: ["s"],
+        usp_existing: ["u"],
+        audience: "a",
+      },
+      findings: [
+        {
+          id: "f1",
+          category: "доверие",
+          claim: "c1",
+          evidence: "capture/desktop.png",
+          impact: "i1",
+          severity: "high",
+        },
+        {
+          id: "f2",
+          category: "контент",
+          claim: "c2",
+          evidence: "capture/text.txt",
+          impact: "i2",
+          severity: "medium",
+        },
+        {
+          id: "f3",
+          category: "конверсия",
+          claim: "c3",
+          evidence: "capture/desktop.png",
+          impact: "i3",
+          severity: "low",
+        },
+      ],
+      money_loss_summary: "summary",
+    })
+  );
+}
+
+describe("shouldSkip audit", () => {
+  it("skips when done, capture hash matches, and G2 passes", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-audit-"));
+    const leadId = "skip-co";
+    writeMinimalAudit(leadDir, leadId);
+    const state = initState(leadId, "has_website");
+    state.stages.capture = {
+      status: "done",
+      hash: "cap-hash-1",
+      artifact: "capture/meta.json",
+    };
+    state.stages.audit = {
+      status: "done",
+      hash: "cap-hash-1",
+      artifact: "audit.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.audit,
+        "cap-hash-1",
+        false,
+        leadId,
+        leadDir,
+        "audit"
+      ),
+      true
+    );
+  });
+
+  it("does not skip when evidence broken (G2 fail)", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-audit-"));
+    const leadId = "noskip-co";
+    writeMinimalAudit(leadDir, leadId);
+    writeFileSync(
+      path.join(leadDir, "audit.json"),
+      JSON.stringify({
+        schema_version: "1.0",
+        lead_id: leadId,
+        business_facts: {
+          services: ["s"],
+          usp_existing: ["u"],
+          audience: "a",
+        },
+        findings: [
+          {
+            id: "f1",
+            category: "доверие",
+            claim: "c1",
+            evidence: "capture/missing.png",
+            impact: "i1",
+            severity: "high",
+          },
+          {
+            id: "f2",
+            category: "контент",
+            claim: "c2",
+            evidence: "capture/text.txt",
+            impact: "i2",
+            severity: "medium",
+          },
+          {
+            id: "f3",
+            category: "конверсия",
+            claim: "c3",
+            evidence: "capture/desktop.png",
+            impact: "i3",
+            severity: "low",
+          },
+        ],
+        money_loss_summary: "summary",
+      })
+    );
+    const state = initState(leadId, "has_website");
+    state.stages.capture = { status: "done", hash: "cap-hash-1" };
+    state.stages.audit = {
+      status: "done",
+      hash: "cap-hash-1",
+      artifact: "audit.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.audit,
+        "cap-hash-1",
+        false,
+        leadId,
+        leadDir,
+        "audit"
+      ),
+      false
+    );
+  });
+
+  it("does not skip when force=true", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-audit-"));
+    const leadId = "force-co";
+    writeMinimalAudit(leadDir, leadId);
+    const state = initState(leadId, "has_website");
+    state.stages.capture = { status: "done", hash: "cap-hash-1" };
+    state.stages.audit = {
+      status: "done",
+      hash: "cap-hash-1",
+      artifact: "audit.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.audit,
+        "cap-hash-1",
+        true,
+        leadId,
+        leadDir,
+        "audit"
+      ),
+      false
+    );
+  });
+});
 
 function doneCaptureState(branch: "has_website" | "no_website"): PipelineState {
   const state = initState("test-co", branch);
