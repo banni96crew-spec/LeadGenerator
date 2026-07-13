@@ -30,8 +30,10 @@ Editing `src/steps/capture/` — website capture for `has_website` branch.
   - `document.body.innerText` → `capture/text.txt`.
   - Signals in meta: `https`, `mobile_friendly` (viewport meta), `has_form`, `has_cta` (action keywords RU/EN), `tech` (generator meta / Tilda/Wix markers), `title`, `description`, optional `lcp_ms`.
 - **Assets** (`assets.ts`):
-  - Logo: `img` with `logo` in src/alt, else first header image → `capture/logo.png` (optional).
-  - Up to N photos → `capture/photos/*`.
+  - Scroll page to trigger lazy-load; collect `src` / `srcset` / `data-src` / `data-lazy-src` / `data-original`.
+  - Logo: `img` with `logo` in src/alt, else header/nav img → `capture/logo.{ext}` (optional; SVG allowed as `.svg`).
+  - Photos (up to 3): raster only, min ~400×300 and ≥20KB; reject SVG and icon URL markers before the candidate cap; include large CSS backgrounds; save as `capture/photo-N.{jpg|png|webp|…}`.
+  - Empty `photos: []` is valid when no large images exist.
 - **Output**: write `capture/meta.json` with relative paths, `schema_version`, validate via `assertValid` before return.
 - **Error handling**: on navigation failure, still write partial meta with `http_status` and throw/return error for orchestrator retry.
 - **Cost**: stage `cost: 0` in state.

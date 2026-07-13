@@ -89,8 +89,19 @@ Detection is **code/DOM only** — no LLM.
 
 ### 7. Assets (`assets.ts`)
 
-- Logo: `img` with `logo` in `src` or `alt`, else first header image → `capture/logo.png` (optional).
-- Up to N photos → `capture/photos/*` (optional).
+Before collecting images, scroll the page (lazy-load). Prefer `currentSrc` / largest `srcset` / `data-src` / `data-lazy-src` / `data-original`. Also include large CSS `background-image` URLs. **Skip SVG/tiny/icon URLs before the 30-candidate cap** so real photos further down the DOM still qualify. Clear prior `logo.*` / `photo-*` before write.
+
+**Logo (optional):**
+- Prefer `img` with `logo` in `src`/`alt`, else first `header`/`nav` image.
+- Save as `capture/logo.{ext}` from Content-Type (`.svg` allowed for logo).
+- Reject tiny raster logos (&lt;32px). Min size ~500B (SVG) / ~2KB (raster).
+
+**Photos (optional, up to 3):**
+- Raster only — **no SVG** (URL or content-type).
+- Prefer `naturalWidth ≥ 400` and `naturalHeight ≥ 300`; after download enforce with `image-size` + body ≥ **20KB**.
+- Skip URL markers: `icon`, `sprite`, `arrow`, `chevron`, `bullet`, `spacer`, `1x1`, `pixel`, `favicon`, `emoji`.
+- Sort candidates by area descending; write `capture/photo-1.{jpg|png|webp|…}`.
+- Empty `photos: []` is OK — do not fail Capture/G1.
 
 ### 8. Write `capture/meta.json`
 

@@ -11,7 +11,8 @@
   - `Домео` → `domeo`
   - `ООО Ремонт+` → `ooo-remont`
 - Все пути в JSON-артефактах — **относительные** от корня лида (`capture/desktop.png`)
-- Фото из capture: `capture/photo-1.png`, `capture/photo-2.png` (до 3 шт.; logo — `capture/logo.png`)
+- Фото из capture: `capture/photo-1.jpg` (или `.png`/`.webp` — по Content-Type; до 3 шт.)
+- Логотип: `capture/logo.{png|jpg|webp|svg}` — путь в `meta.assets.logo` (не хардкод `.png`)
 
 ## Контракты
 

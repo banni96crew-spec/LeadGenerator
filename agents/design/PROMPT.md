@@ -21,7 +21,7 @@
 | `leads/{lead_id}/lead.json` | name |
 | `context/design-system/` | `shell.html`, `tokens.css`, `base.css`, partials |
 | `context/verticals/{vertical}.md` | template id (`renovation-v1`), aesthetic |
-| `capture/logo.png`, `capture/photo-*.png` | реальные ассеты |
+| `capture/logo.*`, `capture/photo-*.{jpg,png,webp}` | реальные ассеты (пути из `meta.assets`) |
 
 ## Output
 
