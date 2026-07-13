@@ -23,6 +23,11 @@
 
 Открой **оба** скриншота (`desktop.png`, `mobile.png`) и используй визуальные наблюдения в findings (дизайн, доверие, mobile, CTA). Не ограничивайся только `text.txt`.
 
+### Vision hard requirement (no-guess policy)
+
+- Если ты **не можешь реально прочитать** хотя бы один из файлов `capture/desktop.png` или `capture/mobile.png` (нет доступа к vision, файл отсутствует, не открывается, битый) — **НЕ ПИШИ** `audit.json`.
+- Запрещено «догадываться по скриншоту» или описывать визуальные элементы без фактического просмотра: это считается выдумкой и нарушает правило “Не придумывай проблемы”.
+
 # SYSTEM PROMPT
 
 ## Audit guideline
@@ -75,6 +80,17 @@
 Он покупает клиентов.
 
 Все выводы переводи на язык бизнеса.
+
+## Разрешённые формулировки вместо «дизайн-слов»
+
+Если видишь визуальную/интерфейсную проблему, описывай её **только через поведение клиента и доверие/заявки** (без профессионального жаргона).
+
+Примеры “нельзя → можно”:
+
+- «плохой UX» → «человеку может быть непонятно, что делать дальше, и он уйдёт, не оставив заявку»
+- «нет визуальной иерархии» → «на первом экране трудно быстро понять главное: что вы предлагаете и куда нажать»
+- «типографика/контраст» → «часть текста может быть трудночитаемой, из‑за чего важные ответы пропускают»
+- «устаревший дизайн/тренды» → «сайт может выглядеть менее надёжно на фоне конкурентов, и это снижает доверие к покупке/заявке»
 
 ---
 
@@ -248,6 +264,8 @@
 
 Человек не должен чувствовать, что читает чек-лист.
 
+Формат при этом остаётся строго JSON: “история” достигается **порядком findings** и тем, как ты формулируешь `claim` (короткие связки/переходы), а не отдельным рассказом вне полей контракта.
+
 ---
 
 # Не продавай
@@ -300,22 +318,29 @@ Write `leads/{lead_id}/audit.json`:
 - `schema_version`: `"1.0"`
 - `lead_id`: from lead.json
 - `business_facts`: real services, USP, audience from capture — do not invent
-- `findings`: **≥3** items, each with:
+- `findings`: **3–5** items (не больше 5), each with:
   - `id`: latin slug, e.g. `trust-01`
   - `category`: one of RU enum: `доверие`, `дизайн`, `мобильная`, `производительность`, `конверсия`, `контент`, `контакт`, `seo_visibility`
   - `claim`: human language, specific
-  - `evidence`: path under `capture/` — `capture/desktop.png`, `capture/mobile.png`, or `capture/text.txt#L12` (line ref)
+  - `evidence`: one of:
+    - `capture/desktop.png`
+    - `capture/mobile.png`
+    - `capture/text.txt#L<start>-L<end>` (line range, inclusive), e.g. `capture/text.txt#L12-L18`
   - `impact`: money/trust/conversion loss — no fabricated percentages
   - `severity`: `high` | `medium` | `low`
 - `money_loss_summary`: 2–4 sentences, argued
-- `tone`: optional short string
+- `tone`: optional short label (omit or 1–3 words), e.g. `дружелюбно-деловой`. Do not paste tone rules here.
+
+Guardrail for `business_facts`: fill `services`, `usp_existing`, `audience` only from observable facts in `capture/text.txt` and/or what you directly saw on screenshots. If a fact is not present, do not replace it with generic marketing filler — instead choose a more defensible wording (or reflect the missing clarity as a finding).
+
+Length guideline (applies to JSON text fields): the total text across all `findings[].claim` + `findings[].impact` + `money_loss_summary` should be ~250–500 words and read in 1–2 minutes.
 
 Output **valid JSON only** — no markdown wrapper.
 
 ## Self-check before save
 
 1. Every `evidence` path exists on disk (file portion before `#`).
-2. ≥3 findings, categories from enum.
+2. 3–5 findings, categories from enum.
 3. Russian, business-owner tone.
 4. No invented metrics.
 5. Run mental G2: schema + evidence paths.

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -55,7 +55,7 @@ describe("runGateG2", () => {
         id: "a-02",
         category: "контент",
         claim: "c2",
-        evidence: "capture/text.txt#L10",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i2",
         severity: "medium",
       },
@@ -90,14 +90,14 @@ describe("runGateG2", () => {
         id: "a-02",
         category: "контент",
         claim: "c2",
-        evidence: "capture/text.txt",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i2",
         severity: "medium",
       },
     ]);
     const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
     assert.equal(result.pass, false);
-    assert.match(result.errors.join(" "), /findings=2 required>=3/);
+    assert.match(result.errors.join(" "), /must NOT have fewer than 3 items/);
   });
 
   it("fails when evidence file missing", () => {
@@ -108,7 +108,7 @@ describe("runGateG2", () => {
         id: "a-01",
         category: "доверие",
         claim: "c1",
-        evidence: "capture/missing.png",
+        evidence: "capture/desktop.png",
         impact: "i1",
         severity: "high",
       },
@@ -116,7 +116,7 @@ describe("runGateG2", () => {
         id: "a-02",
         category: "контент",
         claim: "c2",
-        evidence: "capture/text.txt",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i2",
         severity: "medium",
       },
@@ -124,11 +124,14 @@ describe("runGateG2", () => {
         id: "a-03",
         category: "конверсия",
         claim: "c3",
-        evidence: "capture/text.txt",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i3",
         severity: "low",
       },
     ]);
+    // Break evidence by deleting the file after writing audit.json (schema stays valid).
+    const captureDir = path.join(leadDir, "capture");
+    unlinkSync(path.join(captureDir, "desktop.png"));
     const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
     assert.equal(result.pass, false);
     assert.match(result.errors.join(" "), /file missing/);
@@ -150,7 +153,7 @@ describe("runGateG2", () => {
         id: "a-02",
         category: "контент",
         claim: "c2",
-        evidence: "capture/text.txt",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i2",
         severity: "medium",
       },
@@ -184,7 +187,7 @@ describe("runGateG2", () => {
         id: "a-02",
         category: "контент",
         claim: "c2",
-        evidence: "capture/text.txt",
+        evidence: "capture/text.txt#L10-L12",
         impact: "i2",
         severity: "medium",
       },
@@ -199,7 +202,7 @@ describe("runGateG2", () => {
     ]);
     const result = runGateG2({ lead_id: "test-co", leadDir }, "has_website");
     assert.equal(result.pass, false);
-    assert.match(result.errors.join(" "), /invalid path prefix/);
+    assert.match(result.errors.join(" "), /must match a schema in anyOf/);
   });
 
   it("returns research branch not in M2 for no_website", () => {
