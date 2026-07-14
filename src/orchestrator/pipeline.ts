@@ -25,6 +25,7 @@ import {
   updateStage,
 } from "./state.js";
 import { runCapture } from "../steps/capture/index.js";
+import { assembleDesign } from "../steps/design/assemble.js";
 import { renderPreview } from "../steps/design/renderPreview.js";
 import type { Lead, PipelineState, StageName } from "../lib/types.js";
 
@@ -636,8 +637,6 @@ async function runDesignGate(
   force: boolean
 ): Promise<{ state: PipelineState; exitCode: number }> {
   const stageName: StageName = "design";
-  const indexPath = path.join(leadDir, "design", "dist", "index.html");
-  const buildPath = path.join(leadDir, "design", "build.json");
   const criticPath = path.join(leadDir, "design", "critic.json");
 
   if (state.stages.copy.status !== "done") {
@@ -675,19 +674,6 @@ async function runDesignGate(
     return { state, exitCode: 1 };
   }
 
-  if (!existsSync(indexPath) || !existsSync(buildPath)) {
-    updateStage(state, stageName, { status: "pending", error: undefined });
-    saveState(state);
-    logStage({
-      lead_id: lead.lead_id,
-      stage: stageName,
-      status: "awaiting",
-      cost: 0,
-      message: "awaiting design build (agents/design/PROMPT.md)",
-    });
-    return { state, exitCode: EXIT_AWAITING };
-  }
-
   if (
     shouldSkip(
       state.stages[stageName],
@@ -718,10 +704,15 @@ async function runDesignGate(
   saveState(state);
 
   try {
+    await assembleDesign(leadDir);
     await renderPreview(leadDir);
+    // Rebuild always invalidates prior critic — LLM must re-score fresh previews.
+    if (existsSync(criticPath)) {
+      unlinkSync(criticPath);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const lastError = `lead_id=${lead.lead_id} stage=design gate=G4 reason=renderPreview ${message}`;
+    const lastError = `lead_id=${lead.lead_id} stage=design gate=G4 reason=assemble/renderPreview ${message}`;
     updateStage(state, stageName, {
       status: "failed",
       attempts,

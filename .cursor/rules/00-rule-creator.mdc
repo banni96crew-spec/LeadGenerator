@@ -120,6 +120,7 @@ Use this naming style:
 
 ```
 .cursor/rules/00-project-overview.mdc
+.cursor/rules/00-agent-preflight.mdc
 .cursor/rules/01-contract-first.mdc
 .cursor/rules/02-llm-invariants.mdc
 .cursor/rules/03-pipeline-gates.mdc

@@ -22,14 +22,19 @@ Not for `.cursor/agents/` — pipeline agent only (`agents/design-critic/`).
 
 - **Reads**: `design/preview-desktop.png`, `design/preview-mobile.png`, `design/build.json` (metadata only). No source code review as primary input.
 - **Writes**: `leads/{id}/design/critic.json` OR structured result for gate — `{ pass, gate: "G4", scores, notes[] }`.
-- **Question**: «Выглядит ли это как сайт, который владелец бизнеса захочет купить?»
-- **Rubric** (score 1–5 each, pass if all ≥4):
+- **Question**: «Выглядит ли это как сайт, который владелец бизнеса захотел бы купить?»
+- **Rubric** (score 1–5 each; pass only if all ≥4 and `pass: true`):
   - `trust` — looks legitimate, not scam/template-farm
   - `modern` — contemporary, not dated 2010 layout
   - `sellable` — owner would want this for their business
   - `readable` — text legible on mobile and desktop
+- **Auto-fail** (`pass: false` immediately):
+  - First viewport looks like template farm / SaaS cards / no readable brand
+  - Hero photo not a dominant visual anchor (over-dimmed / missing)
+  - Text unreadable on mobile preview
+  - No sense of one calm accent / visual noise
 - **Read-only**: do not edit `design/dist/`, `content.json`, or templates.
-- **On fail**: return specific notes for Design retry or template swap.
+- **On fail**: `notes[]` actionable Russian for Design retry (slots / brand tokens / reassemble — not vague polish).
 
 ## When user requests forbidden pattern
 
@@ -39,7 +44,7 @@ Not for `.cursor/agents/` — pipeline agent only (`agents/design-critic/`).
 ## Forbidden behavior
 
 - Do not modify design files.
-- Do not approve generic AI-template look without noting it.
+- Do not approve generic AI-template look without auto-fail / notes.
 - Do not use LLM for code-level gate checks (console errors = code G4).
 
 ## Output requirements
@@ -49,6 +54,7 @@ Not for `.cursor/agents/` — pipeline agent only (`agents/design-critic/`).
 ## Verification checklist
 
 - [ ] Evaluated both preview PNGs.
-- [ ] Rubric scores recorded.
+- [ ] Rubric scores recorded (pass requires all ≥4).
+- [ ] Auto-fail criteria applied when triggered.
 - [ ] No files in `design/dist/` modified.
 - [ ] Result consumed by G4 gate.

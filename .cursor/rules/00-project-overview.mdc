@@ -21,7 +21,7 @@ Priority on conflict: `[P]` project invariants + PRD > stack constraints > unive
 
 ## Required behavior
 
-- The agent always uses MCP sequential-thinking to perform all tasks without exception.
+- Agent workflow (preflight, sequential-thinking, tool inventory): see [00-agent-preflight.mdc](00-agent-preflight.mdc).
 - Project: **LeadGenerator** — multi-agent pipeline: lead → audit/research → demo site → personalized offer.
 - Work only within current milestone from PRD §19 unless user explicitly requests otherwise.
 - Definition of Done: `written → tested → working`; report checks as `pass|fail|not run`.

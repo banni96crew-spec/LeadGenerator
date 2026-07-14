@@ -1,8 +1,8 @@
 <section class="section section--tight" id="proof">
   <div class="section__inner proof">
-    <div>
+    <div class="reveal">
       <p class="section__label">Доказательства</p>
-      <h2 class="section__title">Реальные объекты и отзывы</h2>
+      <h2 class="section__title">Работу можно проверить</h2>
       <ul class="proof-list">
         {{#social_proof.cases}}
         <li>{{.}}</li>
@@ -12,10 +12,12 @@
         {{/social_proof.reviews}}
       </ul>
     </div>
-    <div class="photo-strip" aria-hidden="true">
+    {{#photos.0}}
+    <div class="photo-strip reveal reveal--delay-2" aria-hidden="true">
       {{#photos}}
-      <img src="{{src}}" alt="" />
+      <img src="{{src}}" alt="" loading="lazy" />
       {{/photos}}
     </div>
+    {{/photos.0}}
   </div>
 </section>

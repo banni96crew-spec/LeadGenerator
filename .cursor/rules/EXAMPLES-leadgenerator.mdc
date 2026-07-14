@@ -256,6 +256,45 @@ Stock placeholders запрещены когда ассеты есть.
 | Vertical scope | `universal.md` for all niches | One niche + `content.json` slots (`32-vertical-templates`) |
 | Demo assets | Stock logo when `capture/logo.png` exists | Reuse client assets (`33-demo-site-output`) |
 | Lead data in context | Audit findings in `context/` | Artifacts in `leads/{id}/` only (`30-context-files`) |
+| Skip preflight | Read/Grep first in Ask mode | sequential-thinking → Pre-flight (`00-agent-preflight`) |
+| Fake preflight | Pre-flight block without MCP | Hooks block until sequential-thinking done |
+
+## 15. Agent preflight — skip workflow
+
+**User:** «Где определён runGateG4?» (Ask mode)
+
+**Wrong:** Immediately `Grep` or `Read` without sequential-thinking and Pre-flight block.
+
+**Correct:**
+
+```
+00-agent-preflight: sequential-thinking → ### Pre-flight (Complex: no) → Grep/Read.
+
+Ask mode does not exempt preflight.
+```
+
+**User:** «Добавь hook для preflight» (plan lists create-hook skill)
+
+**Wrong:** Start coding hooks without reading matching skill or declaring inventory.
+
+**Correct:**
+
+```
+00-agent-preflight: Complex: yes.
+Pre-flight lists: create-hook SKILL, sequential-thinking MCP.
+Read .cursor/skills-cursor/create-hook/SKILL.md (or project skill) before implementation.
+```
+
+**User:** Agent prints Pre-flight without calling sequential-thinking MCP
+
+**Wrong:** Fake compliance — Pre-flight block only, no MCP call.
+
+**Correct:**
+
+```
+Hooks (preToolUse) block tools until afterMCPExecution marks sequential_thinking_done.
+Agent must call user-sequential-thinking/sequentialthinking first; user rejects if block missing.
+```
 
 ## Key rule
 

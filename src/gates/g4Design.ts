@@ -1,10 +1,11 @@
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { assertValid } from "./validate.js";
 import type { GateContext, GateResult } from "../lib/types.js";
 
 const MIN_PREVIEW_BYTES = 5120;
 const MIN_CRITIC_SCORE = 4;
+const CDN_FONT_RE = /fonts\.googleapis|fonts\.gstatic/i;
 
 function formatGateError(
   ctx: GateContext,
@@ -12,6 +13,110 @@ function formatGateError(
   reason: string
 ): string {
   return `lead_id=${ctx.lead_id} stage=design gate=G4 artifact=${artifact} ${reason}`;
+}
+
+function collectDistFiles(distDir: string, exts: Set<string>): string[] {
+  if (!existsSync(distDir)) return [];
+  const out: string[] = [];
+  const stack = [distDir];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    for (const name of readdirSync(dir, { withFileTypes: true })) {
+      const abs = path.join(dir, name.name);
+      if (name.isDirectory()) {
+        stack.push(abs);
+      } else if (exts.has(path.extname(name.name).toLowerCase())) {
+        out.push(abs);
+      }
+    }
+  }
+  return out;
+}
+
+function checkAssemblyInvariants(
+  ctx: GateContext,
+  build: Record<string, unknown>,
+  errors: string[]
+): void {
+  const indexRel = "design/dist/index.html";
+  const indexPath = path.join(ctx.leadDir, indexRel);
+  const distDir = path.join(ctx.leadDir, "design", "dist");
+  const html = readFileSync(indexPath, "utf8");
+
+  if (html.includes("{{")) {
+    errors.push(
+      formatGateError(ctx, indexRel, "reason=leftover mustache {{ in index.html")
+    );
+  }
+
+  const textFiles = [
+    indexPath,
+    ...collectDistFiles(distDir, new Set([".css", ".html"])),
+  ];
+  const seen = new Set<string>();
+  for (const abs of textFiles) {
+    if (seen.has(abs)) continue;
+    seen.add(abs);
+    const text = abs === indexPath ? html : readFileSync(abs, "utf8");
+    if (CDN_FONT_RE.test(text)) {
+      const rel = path.relative(ctx.leadDir, abs).replace(/\\/g, "/");
+      errors.push(
+        formatGateError(
+          ctx,
+          rel,
+          "reason=forbidden font CDN (fonts.googleapis / fonts.gstatic)"
+        )
+      );
+    }
+  }
+
+  const brandTokens = build.brand_tokens as {
+    primary?: string;
+    font?: string;
+    logo?: string;
+  };
+  if (brandTokens?.logo) {
+    const logoAbs = path.join(distDir, brandTokens.logo);
+    if (!existsSync(logoAbs)) {
+      errors.push(
+        formatGateError(
+          ctx,
+          `design/dist/${brandTokens.logo}`,
+          "reason=brand_tokens.logo file missing under dist"
+        )
+      );
+    }
+  }
+
+  const imgSrcRe = /<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi;
+  let match: RegExpExecArray | null;
+  while ((match = imgSrcRe.exec(html)) !== null) {
+    const src = match[1]!.trim();
+    if (!src || /^(https?:|data:|\/\/)/i.test(src)) continue;
+    const clean = src.split("?")[0]!.split("#")[0]!;
+    const assetAbs = path.join(distDir, clean);
+    if (!existsSync(assetAbs)) {
+      errors.push(
+        formatGateError(
+          ctx,
+          indexRel,
+          `reason=img src missing under dist: ${clean}`
+        )
+      );
+    }
+  }
+
+  const cssFiles = collectDistFiles(distDir, new Set([".css"]));
+  const cssBlob = cssFiles.map((f) => readFileSync(f, "utf8")).join("\n");
+  if (!cssBlob.includes("prefers-reduced-motion")) {
+    errors.push(
+      formatGateError(
+        ctx,
+        "design/dist",
+        "reason=CSS missing prefers-reduced-motion"
+      )
+    );
+  }
 }
 
 export type G4Options = {
@@ -55,6 +160,8 @@ export function runGateG4(
     errors.push(formatGateError(ctx, buildRel, `reason=${message}`));
     return { pass: false, gate: "G4", errors };
   }
+
+  checkAssemblyInvariants(ctx, build, errors);
 
   const screens = build.screens as string[];
   for (const rel of screens) {

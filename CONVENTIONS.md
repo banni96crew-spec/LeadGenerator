@@ -109,18 +109,19 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 После Design. Precondition: `copy.status === done`.
 
-**A1 three-step:**
-1. Design agent (MUST `premium-website-designer` static-assembly) пишет `design/dist/` + `build.json`
-2. `--stage design` → orchestrator **всегда** `renderPreview` → G4 code; если нет `critic.json` → exit **3** awaiting critic
+**Flow:**
+1. `--stage design` → code `assembleDesign` (`src/steps/design/assemble.ts`) собирает `design/dist/` + `build.json` из `context/design-system` + `content.json` + capture assets + `resolveBrandTokens`
+2. Orchestrator **всегда** `renderPreview` → G4 code checks; если нет `critic.json` → exit **3** awaiting critic
 3. Design-Critic пишет `design/critic.json` → `--stage design` → full G4
+4. После critic fail: Design agent правит входы/tokens и перезапускает сборку (polish/retry) — не рисует сайт free-form
 
-**Code checks:** `index.html`; `build.json` schema; previews >5KB; `console_errors_count=0`; `overflow_mobile !== true`.
+**Code checks:** `index.html`; `build.json` schema; no leftover `{{`; no Google Fonts CDN; `brand_tokens.logo` exists under dist if set; `img` asset srcs exist; CSS has `prefers-reduced-motion`; previews >5KB; `console_errors_count=0`; `overflow_mobile !== true`.
 
 **Critic:** schema; `pass=true`; scores trust/modern/sellable/readable все ≥4.
 
-**Hash:** `design.hash` = `copy.hash`. Template id: `renovation-v1`. Assembly: A1 agent only (нет `assemble.ts`); slots `{{hero.headline}}` etc.
+**Hash:** `design.hash` = `copy.hash`. Template id from vertical (default `renovation-v1`). Assembly = **code** via `assembleDesign`; Design agent = polish/retry after critic fail.
 
-**Premium:** Design использует skill `premium-website-designer` → `static-assembly.md` (не Next). Orchestrator owns Playwright previews.
+**Premium:** aesthetic constraints via design-system + skill `premium-website-designer` → `static-assembly.md` (не Next). Orchestrator owns assembly + Playwright previews.
 
 ## Минимальный контекст между стадиями
 

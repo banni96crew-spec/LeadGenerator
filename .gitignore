@@ -3,3 +3,4 @@ dist/
 leads/
 .env
 *.log
+.cursor/session-compliance.json

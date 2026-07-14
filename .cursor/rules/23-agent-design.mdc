@@ -1,5 +1,5 @@
 ---
-description: Design Agent — assemble demo site from design-system + vertical template. Writes design/*. Milestone 3.
+description: Design Agent — polish/retry inputs for code assembleDesign; design-system only. Writes design/*. Milestone 3.
 globs:
   - "agents/design/**"
 alwaysApply: false
@@ -16,31 +16,42 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 ## Source of truth
 
 - [PRD.md](PRD.md) §7.2 (`design/build.json`), §9.2, §14 G4, §15, §19.3.
+- Canonical assembly: `assembleDesign` in `src/steps/design/` (code, not free-form HTML).
 - [context/design-system/](context/design-system/), [context/verticals/*.md](context/verticals/).
+- Assembly guide: [static-assembly.md](../skills/premium-website-designer/references/static-assembly.md) — do not paste entire skill.
 - Schema: `schemas/design-build.schema.json` when present.
 - Level A `01-contract-first`.
 
 ## Required behavior
 
-- **MUST**: follow [premium-website-designer](../skills/premium-website-designer/SKILL.md) **static-assembly** path (Silence/Typography/Grid/CSS motion). Orchestrator owns render-preview — agent does not trigger Playwright.
-- **Reads**: `content.json`, `context/design-system/*`, one vertical template, `capture/logo.png` (if exists) for brand tokens.
-- **Writes**: `leads/{id}/design/dist/` (static build), `design/build.json` only (previews via orchestrator `runDesignGate`).
-- **Assembly only**: map `content.json` slots into template — do NOT generate arbitrary CSS/layout from scratch.
-- **brand_tokens**: from capture logo + design-system defaults (`primary`, `font`, `logo` path).
-- **template**: name recorded in `build.json` (e.g. `renovation-v2`).
+- **Canonical assembly is code** (`assembleDesign`). Agent does **not** hand-write `index.html` from scratch on normal runs.
+- **Agent role**: set/fix `content.json` slots and `brand_tokens`, then reassemble; after Design-Critic fail — fix inputs/tokens and re-run assemble — **not** free-form CSS or a redrawn site.
+- **MUST**:
+  1. Assembly only via design-system / assemble — no free-form CSS/layout.
+  2. Brand-first hero: one logo signal, full-bleed photo, H1 + sub + one CTA.
+  3. No cards in hero; no pill/badge clutter in first viewport.
+  4. One accent; calm neutrals (vertical aesthetic).
+  5. Self-hosted Cyrillic fonts from design-system (no CDN).
+  6. Nonlinear section rhythm; generous whitespace.
+  7. CSS-only motion + `prefers-reduced-motion`.
+  8. Real capture assets; all slots closed; critic-fail → fix inputs/tokens and reassemble.
+- **Reads**: `content.json`, `context/design-system/*`, one vertical template, capture logo/photos for brand tokens.
+- **Writes**: `leads/{id}/design/dist/` (via assemble), `design/build.json` only (previews via orchestrator `runDesignGate`).
+- **template**: name in `build.json` (e.g. `renovation-v1`).
 - **Responsive**: mobile + desktop; no horizontal overflow.
-- **Real assets**: reuse client logo/photos from `capture/` when available.
 - **Gate G4**: build succeeds, previews exist, 0 console errors, then Design-Critic.
+- Orchestrator owns render-preview — agent does not trigger Playwright.
 
 ## When user requests forbidden pattern
 
-- «Сгенерируй уникальный CSS с нуля» → refuse; design-system + vertical only.
+- «Сгенерируй уникальный CSS с нуля» / «перерисуй сайт» → refuse; fix slots/tokens + reassemble only.
 - «React/Next demo» → refuse; static HTML per `00-project-overview`.
 - «Пропусти preview screenshots» → refuse; G4 requires previews.
 
 ## Forbidden behavior
 
-- Do not write free-form SPA/framework demo.
+- Do not hand-write free-form layout/CSS outside design-system.
+- Do not write SPA/framework demo.
 - Do not ignore `content.json` slot structure.
 - Do not read `audit.json` arguments — only `content.json` + design context.
 - Do not publish — Publish step is code (milestone 4).
@@ -52,8 +63,9 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 
 ## Verification checklist
 
-- [ ] Built from design-system + vertical template.
-- [ ] `content.json` slots populated in UI.
-- [ ] Client logo/assets reused when present.
+- [ ] Built via design-system / `assembleDesign`, not free-form HTML.
+- [ ] `content.json` slots populated; no leftover `{{...}}`.
+- [ ] Client logo/photos reused when present.
+- [ ] MUST hero/accent/font/motion rules satisfied.
 - [ ] Previews rendered for Design-Critic.
 - [ ] G4 code checks pass before critic.

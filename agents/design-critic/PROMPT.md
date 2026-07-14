@@ -23,7 +23,7 @@
 
 ## Question
 
-> Выглядит ли это как сайт, который владелец бизнеса захочет купить?
+> Выглядит ли это как сайт, который владелец бизнеса захотел бы купить?
 
 ## Rubric (1–5 each; pass только если все ≥ 4 и `pass: true`)
 
@@ -33,6 +33,13 @@
 | `modern` | современно, не «сайт 2010» |
 | `sellable` | владелец захотел бы такой сайт |
 | `readable` | текст читаем на desktop и mobile |
+
+## Auto-fail (сразу `pass: false`, даже если какой-то score кажется высоким)
+
+- Первый viewport как template farm / SaaS-cards / бренд нечитаем.
+- Hero-photo не доминирующий visual anchor (перезатемнён / отсутствует).
+- Текст нечитаем на mobile preview.
+- Нет одного спокойного accent / визуальный шум.
 
 ## Output
 
@@ -48,7 +55,7 @@
 }
 ```
 
-`notes` — actionable для Design retry (если fail).
+`notes` — **actionable на русском** для Design retry (слоты / brand tokens / reassembling — не «сделай красивее»).
 
 ## After write
 

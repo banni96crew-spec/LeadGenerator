@@ -366,20 +366,21 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
     resolveInput: { kind: "lead", path: leadDir("domeo") },
     stage: "design",
   });
-  const hasDist = existsSync(
-    path.join(leadDir("domeo"), "design", "dist", "index.html")
+  const hasCritic = existsSync(
+    path.join(leadDir("domeo"), "design", "critic.json")
   );
-  if (!hasDist) {
+  if (!hasCritic) {
     record(
-      "design_awaiting_build_exit_3",
-      designAwait.exitCode === 3,
+      "design_awaiting_critic_exit_3",
+      designAwait.exitCode === 3 &&
+        existsSync(path.join(leadDir("domeo"), "design", "dist", "index.html")),
       `exit=${designAwait.exitCode}`
     );
   } else {
     record(
-      "design_awaiting_build_exit_3",
-      true,
-      "dist present — skip awaiting build"
+      "design_awaiting_critic_exit_3",
+      designAwait.exitCode === 0,
+      `critic present exit=${designAwait.exitCode}`
     );
   }
 } else {
@@ -397,7 +398,7 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
   record("audit_awaiting_exit_3", false, "leads/domeo fixture missing");
   record("copy_awaiting_exit_3", false, "leads/domeo fixture missing");
   record("copy_valid_done", false, "leads/domeo fixture missing");
-  record("design_awaiting_build_exit_3", false, "leads/domeo fixture missing");
+  record("design_awaiting_critic_exit_3", false, "leads/domeo fixture missing");
 }
 
 const example = await runPipeline({
