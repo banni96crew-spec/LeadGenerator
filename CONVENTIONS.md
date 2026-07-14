@@ -99,7 +99,7 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 После Copy. Precondition: `audit.status === done` (`has_website`) или `research.status === done` (`no_website`).
 
-**Code checks:** schema; hero+contact CTA; benefits ≥3; social_proof не пуст; Russian heuristic; vertical non-empty.
+**Code checks:** schema; hero+contact CTA; trust ≥3; symptoms ≥4; why_us ≥3; Russian heuristic; vertical non-empty.
 
 **A1:** агент пишет `content.json` → `npm run pipeline -- --lead … --stage copy`. Exit `3` = awaiting content.json. Max attempts `G3_MAX_ATTEMPTS=2`.
 
@@ -119,9 +119,39 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 **Critic:** schema; `pass=true`; scores trust/modern/sellable/readable все ≥4.
 
-**Hash:** `design.hash` = `copy.hash`. Template id from vertical (default `renovation-v1`). Assembly = **code** via `assembleDesign`; Design agent = polish/retry after critic fail.
+**Hash:** `design.hash` = `copy.hash`. Template id from vertical (default `clinic-v1`). Assembly = **code** via `assembleDesign`; Design agent = polish/retry after critic fail.
 
 **Premium:** aesthetic constraints via design-system + skill `premium-website-designer` → `static-assembly.md` (не Next). Orchestrator owns assembly + Playwright previews.
+
+### Закрытие design после exit 3
+
+1. `npm run pipeline -- --lead leads/{id} --stage design` → exit **3** = **успех code-части G4**, не ошибка.
+2. Проверить `design/dist/index.html`, `preview-desktop.png`, `preview-mobile.png`.
+3. Запустить **Design-Critic** ([`agents/design-critic/PROMPT.md`](agents/design-critic/PROMPT.md)) → записать `leads/{id}/design/critic.json`.
+4. Повторить: `npm run pipeline -- --lead leads/{id} --stage design` → exit **0**, `design.status=done`.
+
+## Migration: renovation → clinic
+
+Старый контракт `content.json` с `benefits` / `social_proof` / `vertical: renovation` **невалиден** после clinic migration — это ожидаемо.
+
+**Рекомендуемый путь:** перезапуск Copy с актуальным промптом:
+
+```bash
+npm run pipeline -- --lead leads/{id} --stage copy --force
+```
+
+Агент: [`agents/copy/PROMPT.md`](agents/copy/PROMPT.md), vertical: [`context/verticals/clinic.md`](context/verticals/clinic.md).
+
+**Быстрый путь (best-effort):**
+
+```bash
+npm run migrate-content -- leads/{id}/content.json        # dry-run
+npm run migrate-content -- leads/{id}/content.json --write
+npm run pipeline -- --lead leads/{id} --stage copy        # G3
+npm run pipeline -- --lead leads/{id} --stage design --force
+```
+
+После миграции content перезапустите design с `--force` (hash сбросится). Placeholder-слоты с `MIGRATE: review` замените через Copy re-run.
 
 ## Минимальный контекст между стадиями
 

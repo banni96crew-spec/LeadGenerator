@@ -703,12 +703,19 @@ async function runDesignGate(
   });
   saveState(state);
 
+  const gateCtx = { lead_id: lead.lead_id, leadDir };
   try {
-    await assembleDesign(leadDir);
-    await renderPreview(leadDir);
-    // Rebuild always invalidates prior critic — LLM must re-score fresh previews.
-    if (existsSync(criticPath)) {
-      unlinkSync(criticPath);
+    const canReuseBuild =
+      !force &&
+      existsSync(criticPath) &&
+      runGateG4(gateCtx, { codeOnly: true }).pass;
+    if (!canReuseBuild) {
+      await assembleDesign(leadDir);
+      await renderPreview(leadDir);
+      // Fresh previews invalidate prior critic — LLM must re-score.
+      if (existsSync(criticPath)) {
+        unlinkSync(criticPath);
+      }
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -729,10 +736,7 @@ async function runDesignGate(
     return { state, exitCode: 1 };
   }
 
-  const codeGate = runGateG4(
-    { lead_id: lead.lead_id, leadDir },
-    { codeOnly: true }
-  );
+  const codeGate = runGateG4(gateCtx, { codeOnly: true });
   if (!codeGate.pass) {
     const lastError = formatGateErrors(
       lead.lead_id,
@@ -765,7 +769,7 @@ async function runDesignGate(
       status: "awaiting",
       cost: 0,
       ms: Date.now() - started,
-      message: "awaiting design/critic.json (agents/design-critic/PROMPT.md)",
+      message: `awaiting design/critic.json — next: Design-Critic agent → npm run pipeline -- --lead leads/${lead.lead_id} --stage design`,
     });
     return { state, exitCode: EXIT_AWAITING };
   }

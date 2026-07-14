@@ -24,7 +24,7 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/copy/`).
 
 - **Reads**: `leads/{id}/audit.json` OR `research.json`, one matching `context/verticals/{vertical}.md`, `context/tone-of-voice.md`. No screenshots, no full capture HTML.
 - **Writes**: `leads/{id}/content.json` only.
-- **Sections required**: `hero` (headline, subheadline, cta), `benefits[]`, `social_proof`, `contact` (phone, cta) per PRD §7.2.
+- **Sections required**: `hero` (eyebrow, headline, subheadline, cta), `trust[]`, `symptoms[]`, `why_us[]`, `contact` (phone, cta) per PRD §7.2 / `content.schema.json`.
 - **reuse_facts**: populate from capture/audit/research real business data — services, geo, phone from `lead.json`.
 - **CTA**: mandatory in hero and contact; action-oriented Russian.
 - **vertical**: set from lead category / audit context / vertical template name.

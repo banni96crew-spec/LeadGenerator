@@ -193,19 +193,30 @@ describe("shouldSkip copy", () => {
       path.join(leadDir, "content.json"),
       JSON.stringify({
         schema_version: "1.0",
-        vertical: "renovation",
+        vertical: "clinic",
         sections: {
           hero: {
-            headline: "Ремонт квартир",
-            subheadline: "Смета",
-            cta: "Рассчитать",
+            eyebrow: "Клиника",
+            headline: "Приём терапевта",
+            subheadline: "Диагностика",
+            cta: "Записаться",
           },
-          benefits: [
+          trust: [
             { title: "A", text: "a" },
             { title: "B", text: "b" },
             { title: "C", text: "c" },
           ],
-          social_proof: { cases: ["Кейс"] },
+          symptoms: [
+            { pain: "p1", solve: "s1" },
+            { pain: "p2", solve: "s2" },
+            { pain: "p3", solve: "s3" },
+            { pain: "p4", solve: "s4" },
+          ],
+          why_us: [
+            { title: "W1", text: "w1" },
+            { title: "W2", text: "w2" },
+            { title: "W3", text: "w3" },
+          ],
           contact: { phone: "+7", cta: "Заявка" },
         },
         reuse_facts: ["факт"],

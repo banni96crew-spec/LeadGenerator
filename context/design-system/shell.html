@@ -13,97 +13,13 @@
     </style>
   </head>
   <body>
-    <!-- partial: hero -->
-    <a class="skip-link" href="#main-content">К основному содержимому</a>
-    <section class="hero" id="main-content">
-      <nav class="hero__nav" aria-label="Навигация">
-        <a class="hero__nav-link" href="#contact">{{contact.cta}}</a>
-      </nav>
-      {{#photos.0}}
-      <div class="hero__media" aria-hidden="true">
-        <img src="{{photos.0}}" alt="" />
-      </div>
-      {{/photos.0}}
-      <div class="hero__scrim" aria-hidden="true"></div>
-      <div class="hero__content">
-        <div class="hero__brand reveal">
-          {{#brand.logo}}
-          <img src="{{brand.logo}}" alt="{{brand.name}}" />
-          {{/brand.logo}}
-          {{^brand.logo}}
-          <span class="hero__brand-name">{{brand.name}}</span>
-          {{/brand.logo}}
-        </div>
-        <h1 class="hero__title reveal reveal--delay-1">{{hero.headline}}</h1>
-        <p class="hero__sub reveal reveal--delay-2">{{hero.subheadline}}</p>
-        <a class="btn btn--primary reveal reveal--delay-3" href="#contact">{{hero.cta}}</a>
-      </div>
-    </section>
-
-    <!-- partial: benefits -->
-    <section class="section" id="benefits">
-      <div class="section__inner">
-        <p class="section__label reveal">Преимущества</p>
-        <h2 class="section__title reveal reveal--delay-1">Почему выбирают нас</h2>
-        <div class="benefits-grid">
-          {{#benefits}}
-          <article class="benefit reveal reveal--delay-2">
-            <h3 class="benefit__title">{{title}}</h3>
-            <p class="benefit__text">{{text}}</p>
-          </article>
-          {{/benefits}}
-        </div>
-      </div>
-    </section>
-
-    <!-- partial: social_proof -->
-    <section class="section section--tight" id="proof">
-      <div class="section__inner proof">
-        <div class="reveal">
-          <p class="section__label">Доказательства</p>
-          <h2 class="section__title">Работу можно проверить</h2>
-          <ul class="proof-list">
-            {{#social_proof.cases}}
-            <li>{{.}}</li>
-            {{/social_proof.cases}}
-            {{#social_proof.reviews}}
-            <li>{{.}}</li>
-            {{/social_proof.reviews}}
-          </ul>
-        </div>
-        {{#photos.0}}
-        <div class="photo-strip reveal reveal--delay-2" aria-hidden="true">
-          {{#photos}}
-          <img src="{{src}}" alt="" loading="lazy" />
-          {{/photos}}
-        </div>
-        {{/photos.0}}
-      </div>
-    </section>
-
-    <!-- partial: contact -->
-    <section class="section contact" id="contact">
-      <div class="section__inner reveal">
-        <p class="section__label">Контакты</p>
-        <h2 class="section__title">Обсудим вашу задачу</h2>
-        <div class="contact__row reveal reveal--delay-2">
-          <a class="contact__phone" href="tel:{{contact.phone_digits}}">{{contact.phone}}</a>
-          <a class="btn btn--primary" href="tel:{{contact.phone_digits}}">{{contact.cta}}</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- partial: footer -->
-    <footer class="site-footer">
-      <div class="site-footer__inner">
-        <span>{{brand.name}}</span>
-        <span>Демо-версия сайта</span>
-      </div>
-    </footer>
-
-    <a class="mobile-action" href="tel:{{contact.phone_digits}}" aria-label="{{contact.cta}}: {{contact.phone}}">
+    <a class="skip-link" href="#main">К основному содержимому</a>
+    <main id="main">
+      <!-- SLOT:partials -->
+    </main>
+    <a class="mobile-bar" href="tel:{{contact.phone_digits}}">
       <span>{{contact.cta}}</span>
-      <span class="mobile-action__icon" aria-hidden="true">↗</span>
+      <span class="mobile-bar__icon" aria-hidden="true">↗</span>
     </a>
   </body>
 </html>

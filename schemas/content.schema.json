@@ -17,19 +17,47 @@
     "sections": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["hero", "benefits", "social_proof", "contact"],
+      "required": ["hero", "trust", "symptoms", "why_us", "contact"],
       "properties": {
         "hero": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["headline", "subheadline", "cta"],
+          "required": ["eyebrow", "headline", "subheadline", "cta"],
           "properties": {
+            "eyebrow": { "type": "string", "minLength": 1 },
             "headline": { "type": "string", "minLength": 1 },
             "subheadline": { "type": "string", "minLength": 1 },
             "cta": { "type": "string", "minLength": 1 }
           }
         },
-        "benefits": {
+        "trust": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "text"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "symptoms": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pain", "solve"],
+            "properties": {
+              "pain": { "type": "string", "minLength": 1 },
+              "solve": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "why_us": {
           "type": "array",
           "minItems": 3,
           "items": {
@@ -42,27 +70,14 @@
             }
           }
         },
-        "social_proof": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "reviews": {
-              "type": "array",
-              "items": { "type": "string", "minLength": 1 }
-            },
-            "cases": {
-              "type": "array",
-              "items": { "type": "string", "minLength": 1 }
-            }
-          }
-        },
         "contact": {
           "type": "object",
           "additionalProperties": false,
           "required": ["phone", "cta"],
           "properties": {
             "phone": { "type": "string", "minLength": 1 },
-            "cta": { "type": "string", "minLength": 1 }
+            "cta": { "type": "string", "minLength": 1 },
+            "phone_digits": { "type": "string", "minLength": 1 }
           }
         }
       }

@@ -330,22 +330,33 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
       contentPath,
       JSON.stringify({
         schema_version: "1.0",
-        vertical: "renovation",
+        vertical: "clinic",
         sections: {
           hero: {
-            headline: "Ремонт квартир под ключ",
-            subheadline: "Фиксированная смета до старта",
-            cta: "Получить расчёт",
+            eyebrow: "Частная клиника",
+            headline: "Приём терапевта",
+            subheadline: "Диагностика за один визит",
+            cta: "Записаться",
           },
-          benefits: [
-            { title: "Смета", text: "Не растёт после старта" },
-            { title: "Сроки", text: "В договоре" },
-            { title: "Гарантия", text: "На работы" },
+          trust: [
+            { title: "Лицензия", text: "Медицинская деятельность" },
+            { title: "Запись", text: "На время" },
+            { title: "Приём", text: "От 30 минут" },
           ],
-          social_proof: { cases: ["Прозрачный план работ"] },
+          symptoms: [
+            { pain: "Боль 1", solve: "Решение 1" },
+            { pain: "Боль 2", solve: "Решение 2" },
+            { pain: "Боль 3", solve: "Решение 3" },
+            { pain: "Боль 4", solve: "Решение 4" },
+          ],
+          why_us: [
+            { title: "Плюс 1", text: "Текст 1" },
+            { title: "Плюс 2", text: "Текст 2" },
+            { title: "Плюс 3", text: "Текст 3" },
+          ],
           contact: { phone: "+7 (495) 000-00-00", cta: "Оставить заявку" },
         },
-        reuse_facts: ["Ремонт квартир", "Москва"],
+        reuse_facts: ["Частная клиника", "Москва"],
       })
     );
   } else {

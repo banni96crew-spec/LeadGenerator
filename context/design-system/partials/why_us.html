@@ -1,0 +1,24 @@
+<section class="section" id="why" aria-labelledby="why-title">
+  <div class="container why">
+    <div class="why__content">
+      <p class="section-label">Почему мы</p>
+      <h2 class="section-title" id="why-title">Мы отвечаем не словами, а процессом</h2>
+      <ul class="diff-list">
+        {{#why_us}}
+        <li class="diff-list__item">
+          <span class="diff-list__icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <div>
+            <h3 class="diff-list__title">{{title}}</h3>
+            <p class="diff-list__text">{{text}}</p>
+          </div>
+        </li>
+        {{/why_us}}
+      </ul>
+      <a class="btn btn--primary" href="#contact">{{hero.cta}}</a>
+    </div>
+  </div>
+</section>

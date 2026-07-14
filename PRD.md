@@ -229,19 +229,20 @@ LLM-QA : Design-Critic (мини-агент только на финальном
 
 **`content.json`** (выход Copy → вход Design):
 ```jsonc
-{ "schema_version": "1.0", "vertical": "renovation",
+{ "schema_version": "1.0", "vertical": "clinic",
   "sections": {
-    "hero": { "headline": "...", "subheadline": "...", "cta": "..." },
-    "benefits": [ { "title": "...", "text": "..." } ],
-    "social_proof": { "reviews": [...], "cases": [...] },
-    "contact": { "phone": "...", "cta": "..." }
+    "hero": { "eyebrow": "...", "headline": "...", "subheadline": "...", "cta": "..." },
+    "trust": [ { "title": "...", "text": "..." } ],
+    "symptoms": [ { "pain": "...", "solve": "..." } ],
+    "why_us": [ { "title": "...", "text": "..." } ],
+    "contact": { "phone": "...", "cta": "...", "phone_digits": "..." }
   },
-  "reuse_facts": ["настоящие услуги/цены из capture"] }
+  "reuse_facts": ["настоящие услуги/факты из audit/research/lead"] }
 ```
 
 **`design/build.json`**:
 ```jsonc
-{ "schema_version": "1.0", "template": "renovation-v2",
+{ "schema_version": "1.0", "template": "clinic-v1",
   "brand_tokens": { "primary": "#...", "font": "...", "logo": "capture/logo.png" },
   "build_dir": "design/dist", "screens": ["design/preview-desktop.png", "design/preview-mobile.png"] }
 ```

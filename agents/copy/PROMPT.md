@@ -13,7 +13,7 @@
 |------|---------|
 | `leads/{lead_id}/lead.json` | name, phone, geo, category |
 | `leads/{lead_id}/audit.json` **или** `research.json` | факты бизнеса, findings → углы копирайта |
-| `context/verticals/{vertical}.md` | слоты, тон ниши (для Domeo: `renovation.md`) |
+| `context/verticals/{vertical}.md` | слоты, тон ниши (`clinic.md`) |
 | `context/tone-of-voice.md` | стиль |
 
 ## Output
@@ -25,15 +25,23 @@
 ```json
 {
   "schema_version": "1.0",
-  "vertical": "renovation",
+  "vertical": "clinic",
   "sections": {
-    "hero": { "headline": "...", "subheadline": "...", "cta": "..." },
-    "benefits": [
-      { "title": "...", "text": "..." },
-      { "title": "...", "text": "..." },
+    "hero": {
+      "eyebrow": "...",
+      "headline": "...",
+      "subheadline": "...",
+      "cta": "..."
+    },
+    "trust": [
       { "title": "...", "text": "..." }
     ],
-    "social_proof": { "cases": ["..."], "reviews": [] },
+    "symptoms": [
+      { "pain": "...", "solve": "..." }
+    ],
+    "why_us": [
+      { "title": "...", "text": "..." }
+    ],
     "contact": { "phone": "...", "cta": "..." }
   },
   "reuse_facts": ["реальные факты из audit/lead"]
@@ -44,11 +52,14 @@
 
 - Русский язык, деловой тон, без воды.
 - CTA обязателен в `hero` и `contact`.
-- `benefits` ≥ 3.
-- `social_proof`: хотя бы один непустой массив (`cases` или `reviews`). Не выдумывай отзывы/кейсы — только то, что следует из audit/research/lead; если кейсов нет — формулируй нейтральные доказательные тезисы из реальных USP без фейковых имён клиентов.
-- `reuse_facts` — конкретные услуги, гео, телефон, гарантии из входов.
-- Запрещены клише: «инновационные решения», «индивидуальный подход», «полный спектр услуг» без фактов.
-- `vertical` = id шаблона (`renovation` для ремонта).
+- `trust` — 3–4 пункта; только факты из audit/research/lead; **без выдуманных цифр** (4.9, 12000+, фейковые отзывы).
+- `symptoms` ≥ 4: типичные боли ниши + `solve` из USP лида.
+- `why_us` ≥ 3: конкретные отличия процесса/сервиса.
+- **Не заполняй** статические блоки шаблона: steps, FAQ, contact-form — они в design-system.
+- `contact` — данные для формы/FAQ/mobile-bar; отдельной contact-секции на странице нет.
+- `reuse_facts` — конкретные услуги, гео, телефон из входов.
+- Запрещены клише без фактов.
+- `vertical` = `clinic`.
 
 ## After write
 

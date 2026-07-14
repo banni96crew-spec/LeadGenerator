@@ -2,7 +2,7 @@
 
 ## Когда читать
 
-Design stage в LeadGenerator: есть `content.json`, `context/design-system/`, vertical template (`context/verticals/*.md`), capture assets (`capture/logo.png`, photos). Выход — static HTML/CSS в `leads/{id}/design/dist/` + `design/build.json`.
+Design stage в LeadGenerator: есть `content.json`, `context/design-system/`, vertical template (`context/verticals/clinic.md`), capture assets (`capture/logo.png`, photos). Выход — static HTML/CSS в `leads/{id}/design/dist/` + `design/build.json`.
 
 **Не** читай `optional-next-bootstrap.md` в этом контексте — pipeline запрещает SPA/framework bootstrap.
 
@@ -10,53 +10,39 @@ Design stage в LeadGenerator: есть `content.json`, `context/design-system/`
 
 | Артефакт | Назначение |
 |----------|------------|
-| `content.json` | Слоты: hero, benefits, social_proof, contact |
-| `context/design-system/*` | HTML partials, `tokens.css`, `base.css` |
-| `context/verticals/{vertical}.md` | Порядок секций, niche signals, aesthetic note |
+| `content.json` | Слоты: hero, trust, symptoms, why_us, contact |
+| `context/design-system/*` | `shell.html`, partials, `tokens.css`, `base.css` |
+| `context/verticals/clinic.md` | Порядок секций, niche signals, aesthetic note |
 | `capture/logo.png`, `capture/photos/*` | Реальные ассеты клиента в dist |
 
-## Сборка (A1 agent)
+## Сборка (код: `assembleDesign`)
 
-1. Прочитай vertical → определи `template` id (e.g. `renovation-v1`).
-2. Скопируй design-system partials в `design/dist/` или собери `index.html` из partials.
-3. Замени слоты: `{{hero.headline}}`, `{{hero.subheadline}}`, `{{hero.cta}}`, benefits loop, social_proof, contact.
-4. Инжектируй `brand_tokens`: primary color, font stack, logo path из capture + design-system defaults.
-5. Скопируй `capture/logo.png` и релевантные photos в `design/dist/assets/` (или paths из vertical).
-6. Запиши `design/build.json`: `schema_version`, `template`, `brand_tokens`, `build_dir: "design/dist"`, `screens` (заполнятся после render-preview).
+1. Прочитай vertical → `template` id: **`clinic-v1`**.
+2. Скопируй `tokens.css`, `base.css`, `fonts/` в `design/dist/`.
+3. Собери `index.html`: `shell.html` + partials в порядке header → hero → trust → symptoms → why_us → steps → faq → contact-form → footer.
+4. Замени Mustache-слоты из `content.json` + `brand_tokens`.
+5. Скопируй capture logo/photos в `design/dist/assets/`.
+6. Запиши `design/build.json`.
 7. **Не** запускай render-preview — orchestrator делает это в `runDesignGate`.
 
-## CSS-only motion (pipeline)
+## Статические блоки (Copy не заполняет)
 
-В `design/dist` **нет** client JS bundles. Motion = CSS subset premium principles:
-
-```css
-@media (prefers-reduced-motion: no-preference) {
-  .reveal { transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-```
-
-- Hover: `transition` на border/shadow/opacity, не transform spam.
-- Scroll-driven JS (Lenis/GSAP/Framer) — **вне** pipeline static dist.
+- `partials/steps.html`, `partials/faq.html`, `partials/contact-form.html`
 
 ## Slot syntax (normative)
 
-- Mustache-style: `{{section.field}}`, `{{#benefits}}...{{/benefits}}` или явный loop в agent assembly.
-- Слоты должны совпадать с `content.schema.json` и design-system README slot map.
+- Mustache: `{{hero.eyebrow}}`, `{{#trust}}...{{/trust}}`, `{{#symptoms}}...{{/symptoms}}`, `{{#why_us}}...{{/why_us}}`, `{{contact.phone}}`, `{{photos.0}}`.
+- См. `context/design-system/README.md`.
 
 ## Anti-patterns (static dist)
 
-- React/Next/Vue, npm build step в dist, bundled JS для motion.
-- Google Fonts CDN — self-host или system stack (кириллица: Inter, Manrope, IBM Plex, Onest).
-- Purple gradients, card spam, free-form CSS вне design-system tokens.
+- Unsplash / внешние `img src`.
+- React/Next/Vue, Google Fonts CDN.
+- Fake trust metrics в шаблоне.
 
 ## Delivery checklist (pipeline)
 
-- [ ] `design/dist/index.html` открывается локально с относительными assets.
-- [ ] Кириллица читаема на mobile и desktop.
-- [ ] Один accent, nonlinear grid, generous whitespace.
-- [ ] Client logo/photos из capture видны в демо.
-- [ ] `build.json` валиден по `design-build.schema.json`.
-- [ ] Нет horizontal overflow на mobile (проверит G4 после render-preview).
+- [ ] `design/dist/index.html` без `{{`.
+- [ ] Capture logo/photos в dist.
+- [ ] `build.json` валиден; `template: clinic-v1`.
+- [ ] `prefers-reduced-motion` в CSS.

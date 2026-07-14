@@ -12,13 +12,13 @@
 ## MUST
 
 1. Сборка только через design-system / assemble — без free-form CSS/layout.
-2. Brand-first hero: один logo-сигнал, full-bleed photo, H1 + sub + один CTA.
-3. Нет cards в hero; нет pill/badge-шума в первом viewport.
-4. Один accent; спокойные нейтрали (vertical aesthetic).
-5. Self-hosted кириллические шрифты из design-system (без CDN).
-6. Nonlinear rhythm секций; generous whitespace.
+2. Header: nav + CTA only; бренд только в hero (logo или name).
+3. Hero: full-bleed capture photo (`{{photos.0}}`), eyebrow + H1 + sub + один CTA.
+4. Нет cards/badge-шума в первом viewport.
+5. Один accent; спокойные нейтрали (clinic aesthetic).
+6. Self-hosted кириллические шрифты из design-system (без CDN).
 7. Motion только CSS + `prefers-reduced-motion`.
-8. Реальные capture-ассеты; все слоты закрыты; после critic-fail — править входы/tokens и пересобрать, не перерисовывать сайт.
+8. Реальные capture-ассеты; все слоты закрыты; steps/FAQ/form — статика шаблона.
 
 ## Preconditions
 
@@ -29,10 +29,10 @@
 
 | File | Purpose |
 |------|---------|
-| `leads/{lead_id}/content.json` | слоты текста |
+| `leads/{lead_id}/content.json` | слоты: hero, trust, symptoms, why_us, contact |
 | `leads/{lead_id}/lead.json` | name |
-| `context/design-system/` | `shell.html`, `tokens.css`, `base.css`, partials |
-| `context/verticals/{vertical}.md` | template id (`renovation-v1`), aesthetic |
+| `context/design-system/` | `shell.html`, partials, `tokens.css`, `base.css` |
+| `context/verticals/clinic.md` | template id (`clinic-v1`), aesthetic |
 | `capture/logo.*`, `capture/photo-*.{jpg,png,webp}` | реальные ассеты (пути из `meta.assets`) |
 
 ## Output
@@ -45,7 +45,7 @@
 ```json
 {
   "schema_version": "1.0",
-  "template": "renovation-v1",
+  "template": "clinic-v1",
   "brand_tokens": {
     "primary": "#1c2b24",
     "font": "Manrope, Segoe UI, system-ui, sans-serif",
@@ -60,6 +60,7 @@
 
 - **Не** запускай render-preview — orchestrator в `--stage design`.
 - **Не** пиши `critic.json` — это Design-Critic.
+- **Не** добавляй отдельную contact-секцию — телефон в form/FAQ/mobile-bar из `sections.contact`.
 
 ## After write
 

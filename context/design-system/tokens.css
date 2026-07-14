@@ -1,6 +1,7 @@
-/* Self-hosted — Onest (display) + Manrope (body). OFL via @fontsource. No CDN. */
+/* ==========================================================================
+   MedLine Clinic — design tokens & base
+   ========================================================================== */
 
-/* Onest 700 */
 @font-face {
   font-family: "Onest";
   font-style: normal;
@@ -16,10 +17,11 @@
   font-weight: 700;
   font-display: swap;
   src: url("./fonts/onest-latin-700.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
 }
 
-/* Onest 800 */
 @font-face {
   font-family: "Onest";
   font-style: normal;
@@ -35,10 +37,11 @@
   font-weight: 800;
   font-display: swap;
   src: url("./fonts/onest-latin-800.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
 }
 
-/* Manrope 400 */
 @font-face {
   font-family: "Manrope";
   font-style: normal;
@@ -54,10 +57,11 @@
   font-weight: 400;
   font-display: swap;
   src: url("./fonts/manrope-latin-400.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
 }
 
-/* Manrope 600 */
 @font-face {
   font-family: "Manrope";
   font-style: normal;
@@ -73,31 +77,89 @@
   font-weight: 600;
   font-display: swap;
   src: url("./fonts/manrope-latin-600.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
 }
 
 :root {
-  /* Brand — --color-primary overridden at build via brand_tokens */
+  /* Color */
   --color-primary: #1c2b24;
   --color-primary-soft: color-mix(in srgb, var(--color-primary), black 14%);
   --color-ink: #121714;
   --color-muted: #5c6b62;
-  --color-surface: #f4f1eb;
-  --color-surface-elevated: #fffcf7;
+  --color-bg: #f4f1eb;
+  --color-surface: #fffcf7;
+  --color-surface-tint: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
   --color-border: color-mix(in srgb, var(--color-primary) 12%, transparent);
   --color-accent-line: color-mix(in srgb, var(--color-primary) 8%, transparent);
   --color-hero-fg: #f7f5f0;
+  --color-hero-fg-muted: color-mix(in srgb, var(--color-hero-fg) 72%, transparent);
+  --color-success: #2d6a4f;
+  --color-error: #9b2c2c;
 
+  /* Typography */
   --font-display: "Onest", "Segoe UI", system-ui, sans-serif;
-  --font-sans: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-body-lg: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.15vw, 0.9375rem);
+  --text-label: 0.8125rem;
+  --text-display-xl: clamp(2.75rem, 1.5rem + 5.5vw, 5.5rem);
+  --text-display-lg: clamp(1.75rem, 1.2rem + 2.5vw, 2.75rem);
+  --text-display-md: clamp(1.375rem, 1.1rem + 1.2vw, 2rem);
+  --text-stat: clamp(3.5rem, 2rem + 6vw, 6rem);
+  --lh-tight: 0.98;
+  --lh-heading: 1.15;
+  --lh-body: 1.6;
+  --tracking-display: -0.045em;
+  --tracking-heading: -0.03em;
+  --tracking-label: 0.08em;
 
-  --text-body: 1.125rem;
-  --text-body-lh: 1.6;
-  --space-section: clamp(4.5rem, 10vw, 8rem);
-  --space-block: clamp(1.25rem, 3vw, 2rem);
+  /* Layout */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-section: clamp(4.5rem, 7vw, 8rem);
+  --space-section-tight: calc(var(--space-section) * 0.55);
+  --space-block: clamp(1.25rem, 2.5vw, 2rem);
+  --gutter: clamp(1.25rem, 3vw, 2.5rem);
   --max-prose: 38rem;
   --max-content: 72rem;
+  --max-wide: 90rem;
+
+  /* Shape & elevation */
   --radius-sm: 2px;
-  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-  --shadow-soft: 0 1px 2px rgba(18, 23, 20, 0.04), 0 12px 32px -16px rgba(18, 23, 20, 0.18);
+  --radius-md: 4px;
+  --shadow-soft: 0 1px 2px rgb(18 23 20 / 4%), 0 12px 32px -16px rgb(18 23 20 / 18%);
+  --shadow-elevated: 0 14px 36px -12px rgb(0 0 0 / 45%);
+  --shadow-mobile-bar: 0 16px 38px -16px rgb(0 0 0 / 60%);
+  --glass-bg: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  --glass-border: color-mix(in srgb, white 18%, transparent);
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 350ms;
+  --duration-slow: 500ms;
+  --duration-reveal: 750ms;
+
+  /* Components */
+  --btn-height: 3.25rem;
+  --btn-height-compact: 2.75rem;
+  --input-height: 3.25rem;
+  --icon-sm: 1rem;
+  --icon-md: 1.25rem;
+  --icon-lg: 2rem;
+  --stroke: 1.5;
+
+  /* Breakpoints (for reference in comments) */
+  --bp-tablet: 680px;
+  --bp-desktop: 960px;
+  --bp-wide: 1280px;
 }

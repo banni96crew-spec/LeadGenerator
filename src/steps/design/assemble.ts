@@ -13,8 +13,20 @@ import { resolveBrandTokens, type BrandTokens } from "../../lib/brandTokens.js";
 import { REPO_ROOT } from "../../lib/paths.js";
 import { renderMustache } from "./mustache.js";
 
-const DEFAULT_TEMPLATE = "renovation-v1";
+const DEFAULT_TEMPLATE = "clinic-v1";
 const DESIGN_SYSTEM_DIR = path.join(REPO_ROOT, "context", "design-system");
+
+const PARTIALS = [
+  "header",
+  "hero",
+  "trust",
+  "symptoms",
+  "why_us",
+  "steps",
+  "faq",
+  "contact-form",
+  "footer",
+] as const;
 
 export type AssembleDesignResult = {
   template: string;
@@ -28,9 +40,15 @@ type ContentJson = {
   schema_version: string;
   vertical: string;
   sections: {
-    hero: { headline: string; subheadline: string; cta: string };
-    benefits: Array<{ title: string; text: string }>;
-    social_proof: { reviews?: string[]; cases?: string[] };
+    hero: {
+      eyebrow: string;
+      headline: string;
+      subheadline: string;
+      cta: string;
+    };
+    trust: Array<{ title: string; text: string }>;
+    symptoms: Array<{ pain: string; solve: string }>;
+    why_us: Array<{ title: string; text: string }>;
     contact: { phone: string; cta: string; phone_digits?: string };
   };
   reuse_facts: string[];
@@ -169,8 +187,9 @@ function buildView(opts: {
   return {
     brand,
     hero: opts.content.sections.hero,
-    benefits: opts.content.sections.benefits,
-    social_proof: opts.content.sections.social_proof ?? {},
+    trust: opts.content.sections.trust,
+    symptoms: opts.content.sections.symptoms,
+    why_us: opts.content.sections.why_us,
     contact: {
       phone: contact.phone,
       cta: contact.cta,
@@ -178,6 +197,24 @@ function buildView(opts: {
     },
     photos: opts.photoSrcs.map((src) => ({ src })),
   };
+}
+
+function loadPageTemplate(): string {
+  const shellPath = path.join(DESIGN_SYSTEM_DIR, "shell.html");
+  const shell = readFileSync(shellPath, "utf8");
+  const partialsDir = path.join(DESIGN_SYSTEM_DIR, "partials");
+  const body = PARTIALS.map((name) => {
+    const partialPath = path.join(partialsDir, `${name}.html`);
+    if (!existsSync(partialPath)) {
+      throw new Error(`design-system partial missing: ${partialPath}`);
+    }
+    return readFileSync(partialPath, "utf8").trim();
+  }).join("\n\n");
+  const marker = "<!-- SLOT:partials -->";
+  if (!shell.includes(marker)) {
+    throw new Error(`shell.html missing marker: ${marker}`);
+  }
+  return shell.replace(marker, body);
 }
 
 /**
@@ -218,10 +255,7 @@ export async function assembleDesign(
   copyDesignSystem(distDir);
   const photoSrcs = copyCaptureAssets(leadDir, assetsDir, brand);
 
-  const shell = readFileSync(
-    path.join(DESIGN_SYSTEM_DIR, "shell.html"),
-    "utf8"
-  );
+  const shell = loadPageTemplate();
   const view = buildView({ content, brandName, brand, photoSrcs });
   const html = renderMustache(shell, view);
 

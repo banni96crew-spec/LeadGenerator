@@ -1,25 +1,34 @@
-<a class="skip-link" href="#main-content">К основному содержимому</a>
-<section class="hero" id="main-content">
-  <nav class="hero__nav" aria-label="Навигация">
-    <a class="hero__nav-link" href="#contact">{{contact.cta}}</a>
-  </nav>
-  {{#photos.0}}
-  <div class="hero__media" aria-hidden="true">
-    <img src="{{photos.0}}" alt="" />
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__bg" aria-hidden="true">
+    {{#photos.0}}
+    <img class="hero__photo" src="{{photos.0}}" alt="" width="1600" height="1067" />
+    {{/photos.0}}
+    <div class="hero__orb"></div>
+    <div class="hero__scrim"></div>
   </div>
-  {{/photos.0}}
-  <div class="hero__scrim" aria-hidden="true"></div>
-  <div class="hero__content">
-    <div class="hero__brand reveal">
-      {{#brand.logo}}
-      <img src="{{brand.logo}}" alt="{{brand.name}}" />
-      {{/brand.logo}}
-      {{^brand.logo}}
-      <span class="hero__brand-name">{{brand.name}}</span>
-      {{/brand.logo}}
+
+  <div class="hero__layout{{^photos.1}} hero__layout--single{{/photos.1}}">
+    <div class="hero__copy">
+      <div class="hero__brand">
+        {{#brand.logo}}
+        <img src="{{brand.logo}}" alt="{{brand.name}}" />
+        {{/brand.logo}}
+        {{^brand.logo}}
+        <span class="hero__brand-name">{{brand.name}}</span>
+        {{/brand.logo}}
+      </div>
+      <p class="hero__eyebrow">{{hero.eyebrow}}</p>
+      <h1 class="hero__title" id="hero-title">{{hero.headline}}</h1>
+      <p class="hero__sub">{{hero.subheadline}}</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="#contact">{{hero.cta}}</a>
+      </div>
     </div>
-    <h1 class="hero__title reveal reveal--delay-1">{{hero.headline}}</h1>
-    <p class="hero__sub reveal reveal--delay-2">{{hero.subheadline}}</p>
-    <a class="btn btn--primary reveal reveal--delay-3" href="#contact">{{hero.cta}}</a>
+
+    {{#photos.1}}
+    <div class="hero__visual">
+      <img class="hero__portrait" src="{{photos.1}}" alt="" width="800" height="1000" />
+    </div>
+    {{/photos.1}}
   </div>
 </section>

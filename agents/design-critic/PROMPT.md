@@ -4,6 +4,8 @@
 
 ## Preconditions
 
+- Вызывается **после** `npm run pipeline -- --lead leads/{id} --stage design` с exit **3** (code G4 pass, awaiting critic).
+- Runbook: [CONVENTIONS.md](../../CONVENTIONS.md) §G4 «Закрытие design после exit 3».
 - Есть `design/preview-desktop.png` и `design/preview-mobile.png` (после `--stage design` / render-preview).
 - Есть `design/build.json`.
 

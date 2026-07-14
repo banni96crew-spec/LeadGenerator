@@ -11,7 +11,8 @@
     "validate-schemas": "tsx src/scripts/validate-schemas.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "test": "tsx --test src/**/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate-content": "tsx scripts/migrate-content-to-clinic.ts"
   },
   "dependencies": {
     "ajv": "^8.17.1",

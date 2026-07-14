@@ -97,34 +97,43 @@ const examples: Array<{ name: string; data: unknown }> = [
     name: "content",
     data: {
       schema_version: "1.0",
-      vertical: "renovation",
+      vertical: "clinic",
       sections: {
         hero: {
-          headline: "Ремонт квартир под ключ в Москве",
-          subheadline: "Фиксированная смета и сроки до старта работ",
-          cta: "Рассчитать стоимость",
+          eyebrow: "Частная клиника · Москва",
+          headline: "Приём терапевта в Москве",
+          subheadline: "Диагностика и консультация за один визит",
+          cta: "Записаться",
         },
-        benefits: [
-          { title: "Фиксированная цена", text: "Смета не растёт после старта" },
-          { title: "Сроки в договоре", text: "Штраф за просрочку" },
-          { title: "Гарантия 5 лет", text: "На работы и материалы" },
+        trust: [
+          { title: "Лицензия", text: "Медицинская деятельность" },
+          { title: "Запись", text: "На конкретное время" },
+          { title: "Приём", text: "От 30 минут с врачом" },
         ],
-        social_proof: {
-          cases: ["Квартира 78 м² — 45 дней", "Дизайн и ремонт в одной команде"],
-        },
+        symptoms: [
+          { pain: "Откладываете обследование", solve: "план за один визит" },
+          { pain: "Нужен второй взгляд", solve: "независимое заключение" },
+          { pain: "Боитесь доплат", solve: "смета до процедур" },
+          { pain: "Долгое ожидание", solve: "запись без очереди" },
+        ],
+        why_us: [
+          { title: "Диагноз за день", text: "Лаборатория на месте" },
+          { title: "30 минут с врачом", text: "Разбор жалоб" },
+          { title: "Смета до лечения", text: "Прозрачная стоимость" },
+        ],
         contact: {
           phone: "+7 (495) 000-00-00",
           cta: "Оставить заявку",
         },
       },
-      reuse_facts: ["Ремонт квартир", "Москва", "Гарантия 5 лет"],
+      reuse_facts: ["Частная клиника", "Москва"],
     },
   },
   {
     name: "design-build",
     data: {
       schema_version: "1.0",
-      template: "renovation-v1",
+      template: "clinic-v1",
       brand_tokens: {
         primary: "#1C2B24",
         font: "Manrope, system-ui, sans-serif",

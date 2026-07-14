@@ -19,28 +19,48 @@ function writeMinimalContent(leadDir: string): void {
     JSON.stringify(
       {
         schema_version: "1.0",
-        vertical: "renovation",
+        vertical: "clinic",
         sections: {
           hero: {
-            headline: "Ремонт под ключ",
-            subheadline: "Фиксированная смета",
-            cta: "Рассчитать",
+            eyebrow: "Частная клиника · Москва",
+            headline: "Приём терапевта уже завтра",
+            subheadline: "Диагностика и консультация за один визит",
+            cta: "Записаться",
           },
-          benefits: [
-            { title: "Смета", text: "Не растёт" },
-            { title: "Сроки", text: "В договоре" },
-            { title: "Гарантия", text: "На работы" },
+          trust: [
+            { title: "Лицензия", text: "Медицинская деятельность" },
+            { title: "Запись", text: "На конкретное время" },
+            { title: "Приём", text: "От 30 минут с врачом" },
           ],
-          social_proof: {
-            cases: ["Объект с планом работ"],
-            reviews: ["Клиент доволен сроками"],
-          },
+          symptoms: [
+            {
+              pain: "Откладываете обследование",
+              solve: "план диагностики за один визит",
+            },
+            {
+              pain: "Нужен второй взгляд",
+              solve: "независимое заключение специалиста",
+            },
+            {
+              pain: "Боитесь скрытых доплат",
+              solve: "смета до начала процедур",
+            },
+            {
+              pain: "Долгое ожидание приёма",
+              solve: "запись без очереди",
+            },
+          ],
+          why_us: [
+            { title: "Диагноз за один день", text: "Лаборатория и УЗИ на месте" },
+            { title: "30 минут с врачом", text: "Полноценный разбор жалоб" },
+            { title: "Смета до лечения", text: "Согласование стоимости заранее" },
+          ],
           contact: {
             phone: "+7 (495) 123-45-67",
-            cta: "Оставить заявку",
+            cta: "Отправить заявку",
           },
         },
-        reuse_facts: ["Ремонт квартир", "Москва"],
+        reuse_facts: ["Частная клиника", "Москва"],
       },
       null,
       2
@@ -128,7 +148,7 @@ describe("assembleDesign", () => {
 
     const result = await assembleDesign(leadDir);
 
-    assert.equal(result.template, "renovation-v1");
+    assert.equal(result.template, "clinic-v1");
     assert.equal(result.build_dir, "design/dist");
     assert.ok(existsSync(path.join(leadDir, result.index_html)));
     assert.ok(existsSync(path.join(leadDir, result.build_json)));
@@ -144,16 +164,18 @@ describe("assembleDesign", () => {
     const html = readFileSync(path.join(leadDir, result.index_html), "utf8");
     assert.ok(!html.includes("{{"));
     assert.ok(html.includes("ТестБренд"));
-    assert.ok(html.includes("Ремонт под ключ"));
+    assert.ok(html.includes("Приём терапевта уже завтра"));
     assert.ok(html.includes("assets/photo-1.jpg"));
     assert.ok(html.includes("tel:74951234567"));
     assert.ok(html.includes("assets/logo.svg"));
+    assert.ok(html.includes("id=\"symptoms\""));
+    assert.ok(html.includes("id=\"faq\""));
 
     const build = JSON.parse(
       readFileSync(path.join(leadDir, result.build_json), "utf8")
     );
     assertValid(build, "design-build");
-    assert.equal(build.template, "renovation-v1");
+    assert.equal(build.template, "clinic-v1");
     assert.equal(build.brand_tokens.logo, "assets/logo.svg");
   });
 

@@ -1,0 +1,33 @@
+<section class="section section--contact" id="contact" aria-labelledby="contact-title">
+  <div class="contact__orb" aria-hidden="true"></div>
+  <div class="container contact">
+    <div class="contact__intro">
+      <p class="section-label section-label--inverse">Контакты</p>
+      <h2 class="section-title section-title--inverse" id="contact-title">Запишитесь на приём</h2>
+      <p class="contact__lead">Оставьте заявку — перезвоним в рабочее время.</p>
+    </div>
+    <form class="contact-form" action="#" method="post">
+      <div class="field">
+        <label class="field__label" for="name">Имя</label>
+        <input class="field__input" id="name" name="name" type="text" autocomplete="name" required />
+      </div>
+      <div class="field">
+        <label class="field__label" for="phone">Телефон</label>
+        <input class="field__input" id="phone" name="phone" type="tel" autocomplete="tel" required />
+      </div>
+      <div class="field">
+        <label class="field__label" for="message">Комментарий</label>
+        <textarea class="field__input field__textarea" id="message" name="message" rows="3"></textarea>
+      </div>
+      <button class="btn btn--inverse" type="submit">{{contact.cta}}</button>
+      <p class="field__hint">Нажимая кнопку, вы соглашаетесь с политикой обработки персональных данных.</p>
+    </form>
+    <div class="contact__info">
+      <a class="contact__phone" href="tel:{{contact.phone_digits}}">{{contact.phone}}</a>
+      <p class="contact__hours">Ежедневно 8:00–21:00</p>
+      <address class="contact__address">
+        Адрес уточняется при записи
+      </address>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,22 @@
+<section class="section section--surface" id="symptoms" aria-labelledby="symptoms-title">
+  <div class="container editorial">
+    <div class="editorial__intro">
+      <p class="section-label">Симптомы и запросы</p>
+      <h2 class="section-title" id="symptoms-title">Узнаёте себя?</h2>
+      <p class="section-lead">
+        Типичные ситуации, с которыми пациенты обращаются в клинику чаще всего.
+      </p>
+    </div>
+    <ul class="pain-list">
+      {{#symptoms}}
+      <li class="pain-list__item">
+        <span class="pain-list__marker" aria-hidden="true"></span>
+        <div>
+          <p class="pain-list__pain">{{pain}}</p>
+          <p class="pain-list__solve">→ {{solve}}</p>
+        </div>
+      </li>
+      {{/symptoms}}
+    </ul>
+  </div>
+</section>

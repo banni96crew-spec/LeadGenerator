@@ -29,7 +29,7 @@ Assembly behavior: C `23-agent-design`. Visual QA: C `24-agent-design-critic`. A
 - **Real client assets**: when `capture/logo.png` or `capture/photos/*` exist — reuse in demo; no stock placeholders.
 - **Not generic AI-template**: niche copy from `content.json` visible; client logo when available; sellable look per G4 rubric.
 - **Responsive**: no horizontal overflow on mobile/desktop (G4 code check).
-- **build.json**: `template` name recorded (e.g. `renovation-v2`); `brand_tokens` from capture + design-system defaults.
+- **build.json**: `template` name recorded (e.g. `clinic-v1`); `brand_tokens` from capture + design-system defaults.
 - **Manual edits**: prefer re-run Design stage over hand-editing `design/dist/` without updating `build.json` and previews.
 - **Previews required** before Design-Critic — do not skip PNG generation.
 

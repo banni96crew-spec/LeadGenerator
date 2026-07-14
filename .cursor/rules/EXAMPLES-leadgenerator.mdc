@@ -119,7 +119,7 @@ Foundation (PRD §19.1): только capture + G1. Audit — milestone 2.
 ```
 22-agent-copy: копирайт из audit/research + lead.json. Клише без фактов запрещены.
 
-Заполнить hero/benefits из personalization_source и vertical template?
+Заполнить hero/trust/symptoms/why_us из personalization_source и vertical template?
 ```
 
 ## 8. Design — framework demo
@@ -201,7 +201,7 @@ CSS правит Design agent, не Critic.
 
 React/Next запрещён в design-system.
 
-Добавить HTML partial для hero/benefits в design-system?
+Добавить HTML partial для hero/trust/symptoms в design-system?
 ```
 
 ## 13. Vertical — generic template
@@ -213,9 +213,9 @@ React/Next запрещён в design-system.
 **Correct:**
 
 ```
-32-vertical-templates: один niche per file; слоты = hero, benefits, social_proof, contact.
+32-vertical-templates: один niche per file; слоты = hero, trust, symptoms, why_us, contact.
 
-Создать renovation.md с полным slot mapping под PRD §7.2?
+Создать clinic.md с полным slot mapping под PRD §7.2?
 ```
 
 ## 14. Demo — ignore client assets

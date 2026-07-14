@@ -23,9 +23,9 @@ Shared context invariants: `30-context-files`. Assembly behavior: C `23-agent-de
 ## Required behavior
 
 - **Tokens**: `primary`, `font`, spacing, radius — defaults in CSS variables or tokens file; lead-specific brand applied at build via `brand_tokens` in `build.json`, not hardcoded per client in shared files.
-- **Components**: hero, benefits, CTA, footer, contact block — slot-ready HTML partials.
+- **Components**: header, hero, trust, symptoms, why_us, steps, faq, contact-form, footer — slot-ready HTML partials.
 - **Layout patterns**: responsive desktop + mobile breakpoints; no horizontal overflow.
-- **Slot mapping**: component placeholders align with `content.json` sections (`hero`, `benefits[]`, `social_proof`, `contact`).
+- **Slot mapping**: LLM slots align with `content.json` sections (`hero`, `trust[]`, `symptoms[]`, `why_us[]`, `contact` for form/FAQ/mobile-bar). Static partials: `steps`, `faq`, `contact-form`.
 - **Static only**: HTML + CSS — no React, Next.js, Vue, or SPA frameworks.
 - **No pipeline logic**: no orchestrator, gates, or TypeScript runtime code in design-system.
 - **Versioning**: breaking layout/token changes — document in `context/design-system/README.md` or version file.
