@@ -4,7 +4,13 @@
   "title": "Content",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "vertical", "sections", "reuse_facts"],
+  "required": [
+    "schema_version",
+    "vertical",
+    "sections",
+    "footer_tagline",
+    "reuse_facts"
+  ],
   "properties": {
     "schema_version": {
       "type": "string",
@@ -14,70 +20,107 @@
       "type": "string",
       "minLength": 1
     },
+    "footer_tagline": {
+      "type": "string",
+      "minLength": 1
+    },
     "sections": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["hero", "trust", "symptoms", "why_us", "contact"],
+      "required": ["hero", "proof", "approach", "projects", "materials"],
       "properties": {
         "hero": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["eyebrow", "headline", "subheadline", "cta"],
+          "required": [
+            "headline",
+            "subheadline",
+            "cta_primary",
+            "cta_secondary"
+          ],
           "properties": {
-            "eyebrow": { "type": "string", "minLength": 1 },
             "headline": { "type": "string", "minLength": 1 },
             "subheadline": { "type": "string", "minLength": 1 },
-            "cta": { "type": "string", "minLength": 1 }
+            "cta_primary": { "type": "string", "minLength": 1 },
+            "cta_secondary": { "type": "string", "minLength": 1 }
           }
         },
-        "trust": {
+        "proof": {
           "type": "array",
-          "minItems": 3,
+          "minItems": 4,
           "maxItems": 4,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["title", "text"],
+            "required": ["value", "label"],
             "properties": {
-              "title": { "type": "string", "minLength": 1 },
-              "text": { "type": "string", "minLength": 1 }
+              "value": { "type": "string", "minLength": 1, "maxLength": 12 },
+              "label": { "type": "string", "minLength": 1 }
             }
           }
         },
-        "symptoms": {
-          "type": "array",
-          "minItems": 4,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["pain", "solve"],
-            "properties": {
-              "pain": { "type": "string", "minLength": 1 },
-              "solve": { "type": "string", "minLength": 1 }
-            }
-          }
-        },
-        "why_us": {
-          "type": "array",
-          "minItems": 3,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["title", "text"],
-            "properties": {
-              "title": { "type": "string", "minLength": 1 },
-              "text": { "type": "string", "minLength": 1 }
-            }
-          }
-        },
-        "contact": {
+        "approach": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["phone", "cta"],
+          "required": ["eyebrow", "h2", "prose", "steps"],
           "properties": {
-            "phone": { "type": "string", "minLength": 1 },
-            "cta": { "type": "string", "minLength": 1 },
-            "phone_digits": { "type": "string", "minLength": 1 }
+            "eyebrow": { "type": "string", "minLength": 1 },
+            "h2": { "type": "string", "minLength": 1 },
+            "prose": { "type": "string", "minLength": 1 },
+            "steps": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "text"],
+                "properties": {
+                  "title": { "type": "string", "minLength": 1 },
+                  "text": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "projects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["eyebrow", "h2", "lead", "items"],
+          "properties": {
+            "eyebrow": { "type": "string", "minLength": 1 },
+            "h2": { "type": "string", "minLength": 1 },
+            "lead": { "type": "string", "minLength": 1 },
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "text"],
+                "properties": {
+                  "title": { "type": "string", "minLength": 1 },
+                  "text": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "materials": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["eyebrow", "h2", "prose", "items"],
+          "properties": {
+            "eyebrow": { "type": "string", "minLength": 1 },
+            "h2": { "type": "string", "minLength": 1 },
+            "prose": { "type": "string", "minLength": 1 },
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": { "type": "string", "minLength": 1 }
+            }
           }
         }
       }

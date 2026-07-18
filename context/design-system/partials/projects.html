@@ -1,63 +1,39 @@
 <section class="projects" id="projects">
   <div class="section-head reveal">
-    <p class="eyebrow">Проекты</p>
-    <h2>Дома, которые уже стоят</h2>
-    <p class="section-head__lead">Каждый объект — отдельная история участка, а не типовой каталог с перекраской фасада.</p>
+    <p class="eyebrow">{{projects.eyebrow}}</p>
+    <h2>{{projects.h2}}</h2>
+    <p class="section-head__lead">{{projects.lead}}</p>
   </div>
 
   <div class="projects__layout">
-    {{#why_us.0}}
     <article class="project project--wide reveal">
       <figure class="project__media">
-        <img
-          src="{{#photos.1}}{{photos.1}}{{/photos.1}}{{^photos.1}}assets/project-exterior.png{{/photos.1}}"
-          alt="Двухэтажный дом с тёплым светом из окон в сумерках"
-          width="1600"
-          height="900"
-          loading="lazy"
-        />
+        <img src="{{photos.1.src}}" alt="Фасад проекта" width="1600" height="900" loading="lazy" />
       </figure>
       <div class="project__meta">
-        <h3>{{title}}</h3>
-        <p>{{text}}</p>
+        <h3>{{projects.items.0.title}}</h3>
+        <p>{{projects.items.0.text}}</p>
       </div>
     </article>
-    {{/why_us.0}}
 
-    {{#why_us.1}}
     <article class="project reveal">
       <figure class="project__media">
-        <img
-          src="{{#photos.2}}{{photos.2}}{{/photos.2}}{{^photos.2}}assets/project-interior.png{{/photos.2}}"
-          alt="Гостиная с панорамными окнами и видом на берёзовый лес"
-          width="1200"
-          height="900"
-          loading="lazy"
-        />
+        <img src="{{photos.2.src}}" alt="Интерьер" width="1200" height="900" loading="lazy" />
       </figure>
       <div class="project__meta">
-        <h3>{{title}}</h3>
-        <p>{{text}}</p>
+        <h3>{{projects.items.1.title}}</h3>
+        <p>{{projects.items.1.text}}</p>
       </div>
     </article>
-    {{/why_us.1}}
 
-    {{#why_us.2}}
     <article class="project reveal">
       <figure class="project__media">
-        <img
-          src="{{#photos.3}}{{photos.3}}{{/photos.3}}{{^photos.3}}assets/hero-house.png{{/photos.3}}"
-          alt="Фасад дома из известняка и обугленного дерева"
-          width="1200"
-          height="675"
-          loading="lazy"
-        />
+        <img src="{{photos.3.src}}" alt="Фасад проекта" width="1200" height="675" loading="lazy" />
       </figure>
       <div class="project__meta">
-        <h3>{{title}}</h3>
-        <p>{{text}}</p>
+        <h3>{{projects.items.2.title}}</h3>
+        <p>{{projects.items.2.text}}</p>
       </div>
     </article>
-    {{/why_us.2}}
   </div>
 </section>

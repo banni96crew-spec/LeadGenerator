@@ -1,4 +1,38 @@
-/* atrium-v1 — layout & components */
+/* АТРИУМ — premium construction landing */
+:root {
+  --bg: #f3f1ee;
+  --bg-elev: #ebe7e1;
+  --ink: #14161a;
+  --ink-soft: #3a3d44;
+  --stone: #7a756c;
+  --line: rgba(20, 22, 26, 0.12);
+  --accent: #9c7a3c;
+  --accent-hover: #856632;
+  --accent-soft: #e4c48a;
+  --white: #faf9f7;
+  --hero-veil: linear-gradient(
+    180deg,
+    rgba(20, 22, 26, 0.55) 0%,
+    rgba(20, 22, 26, 0.35) 45%,
+    rgba(20, 22, 26, 0.72) 100%
+  );
+
+  --font: "Onest", "Segoe UI", sans-serif;
+  --font-display: "Onest", "Segoe UI", sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.75rem;
+  --space-lg: 3.5rem;
+  --space-xl: 6rem;
+  --space-2xl: 9rem;
+
+  --max: 72rem;
+  --prose: 38rem;
+  --header-h: 4.25rem;
+}
 
 *,
 *::before,
@@ -31,7 +65,7 @@ body {
   line-height: 1.6;
   color: var(--ink);
   background:
-    radial-gradient(ellipse 80% 50% at 10% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(156, 122, 60, 0.06), transparent 55%),
     linear-gradient(180deg, #f6f4f1 0%, var(--bg) 28%, #efece7 100%);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -49,8 +83,7 @@ a {
 }
 
 h1,
-h2,
-h3 {
+h2 {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
@@ -59,6 +92,8 @@ h3 {
 }
 
 h3 {
+  margin: 0;
+  font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
   line-height: 1.25;
@@ -73,8 +108,7 @@ p {
   margin: 0;
 }
 
-ul,
-ol {
+ul {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -125,7 +159,6 @@ ol {
 }
 
 .brand {
-  font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.125rem;
   letter-spacing: 0.18em;
@@ -151,7 +184,7 @@ ol {
 
 .nav__cta {
   opacity: 1 !important;
-  color: #e4c48a;
+  color: var(--accent-soft);
 }
 
 .site-header.is-scrolled .nav__cta {
@@ -278,30 +311,13 @@ ol {
 }
 
 .hero__brand {
-  font-family: var(--font-display);
   font-size: clamp(0.875rem, 0.7rem + 0.6vw, 1rem);
   font-weight: 800;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   margin-bottom: 1.25rem;
-  color: #e4c48a;
+  color: var(--accent-soft);
   animation: fade-up 0.9s var(--ease) both;
-}
-
-.hero__brand img {
-  max-height: 2.5rem;
-  width: auto;
-  filter: brightness(0) invert(1);
-}
-
-.hero__eyebrow {
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.85;
-  margin-bottom: 0.85rem;
-  animation: fade-up 0.9s var(--ease) 0.04s both;
 }
 
 .hero__title {
@@ -403,7 +419,6 @@ ol {
 
 .proof__value {
   display: block;
-  font-family: var(--font-display);
   font-size: clamp(2.5rem, 2rem + 2vw, 3.75rem);
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -468,7 +483,6 @@ ol {
 }
 
 .steps__num {
-  font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.875rem;
   letter-spacing: 0.08em;
@@ -619,18 +633,6 @@ ol {
   background: var(--accent);
 }
 
-.checklist__pain {
-  display: block;
-  font-weight: 600;
-}
-
-.checklist__solve {
-  display: block;
-  margin-top: 0.25rem;
-  color: rgba(250, 249, 247, 0.72);
-  font-size: 0.95rem;
-}
-
 @media (min-width: 960px) {
   .materials__grid {
     grid-template-columns: 1.15fr 1fr;
@@ -642,7 +644,7 @@ ol {
 .promise {
   padding: var(--space-xl) clamp(1.25rem, 3vw, 2rem);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 45%),
+    linear-gradient(135deg, rgba(156, 122, 60, 0.12), transparent 45%),
     var(--bg-elev);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -726,7 +728,6 @@ ol {
 
 .contact__phone {
   margin-top: 2rem;
-  font-family: var(--font-display);
   font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -785,8 +786,8 @@ ol {
 
 .form input:focus,
 .form textarea:focus {
-  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: rgba(156, 122, 60, 0.65);
+  box-shadow: 0 0 0 3px rgba(156, 122, 60, 0.15);
 }
 
 .form__legal {
@@ -798,8 +799,8 @@ ol {
 .form__success {
   margin: 0;
   padding: 0.85rem 1rem;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: rgba(156, 122, 60, 0.12);
+  border: 1px solid rgba(156, 122, 60, 0.35);
   color: var(--ink);
   font-size: 0.95rem;
   font-weight: 600;
@@ -864,7 +865,6 @@ ol {
   }
 
   .hero__brand,
-  .hero__eyebrow,
   .hero__title,
   .hero__lead,
   .hero__actions {

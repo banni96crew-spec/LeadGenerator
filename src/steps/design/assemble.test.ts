@@ -99,7 +99,7 @@ describe("construction-lead fixture contracts", () => {
 });
 
 describe("assembleDesign", () => {
-  it("assembles atrium-v1 dist from construction-lead fixture with defaults", async () => {
+  it("assembles atrium-v1 dist from construction-lead fixture with personalized slots", async () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-assemble-fixture-"));
     copyConstructionFixture(leadDir);
 
@@ -122,17 +122,25 @@ describe("assembleDesign", () => {
     assert.ok(!html.includes("{{"));
     assert.ok(!html.includes('id="faq"'));
     assert.ok(!html.includes("fonts.googleapis.com"));
-    assert.ok(!html.includes("fonts.google.com"));
     assert.ok(!html.includes('src=""'));
-    assert.ok(html.includes("assets/hero-house.png"));
-    assert.ok(html.includes("Атриум Дом"));
-    assert.ok(html.includes("Дом, в котором архитектура держит слово"));
-    assert.ok(html.includes("tel:74951234567"));
-    assert.ok(html.includes("Участок"));
-    assert.ok(html.includes("Подход") || html.includes("Консультация"));
+    assert.ok(html.includes("АТРИУМ"));
+    assert.ok(html.includes("Свой дом без сюрпризов в смете"));
+    assert.ok(html.includes("Обсудить участок"));
+    assert.ok(html.includes("Смотреть объекты"));
+    assert.ok(html.includes("Фикс"));
+    assert.ok(html.includes("смета до старта работ"));
+    assert.ok(html.includes("Один контур от эскиза до ключей"));
+    assert.ok(html.includes("Дом у кромки леса"));
+    assert.ok(html.includes("Узлы фиксируем до старта"));
+    assert.ok(html.includes("Запросить консультацию"));
+    assert.ok(html.includes("Москва · ежедневно 10:00–20:00"));
+    assert.ok(html.includes("+7 (495) 123-45-67"));
+    assert.ok(html.includes("Частные дома с инженерной дисциплиной."));
+    assert.ok(html.includes("Одна смета. Один график. Один ответственный."));
+    assert.ok(html.includes("--ink:"));
+    assert.ok(html.includes("--accent:"));
+    assert.ok(!html.includes("архитектура держит слово"));
     assert.ok(!html.includes("Четыре шага до приёма"));
-    assert.ok(!html.includes("запись на приём"));
-    assert.ok(!html.includes("Демо-сайт клин" + "ики"));
 
     const build = JSON.parse(
       readFileSync(path.join(leadDir, result.build_json), "utf8")
@@ -142,7 +150,22 @@ describe("assembleDesign", () => {
     assert.equal(build.brand_tokens.logo, undefined);
   });
 
-  it("copies capture logo when present on top of fixture content", async () => {
+  it("fails when lead.phone missing", async () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-assemble-nophone-"));
+    copyConstructionFixture(leadDir);
+    const lead = JSON.parse(
+      readFileSync(path.join(leadDir, "lead.json"), "utf8")
+    ) as Record<string, unknown>;
+    delete lead.phone;
+    writeFileSync(path.join(leadDir, "lead.json"), JSON.stringify(lead, null, 2));
+
+    await assert.rejects(
+      () => assembleDesign(leadDir),
+      /lead\.phone required for atrium contact/
+    );
+  });
+
+  it("copies capture logo into dist assets and uses capture photo in hero", async () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-assemble-logo-"));
     copyConstructionFixture(leadDir);
     writeCaptureWithLogo(leadDir);
@@ -154,10 +177,11 @@ describe("assembleDesign", () => {
     assert.ok(
       existsSync(path.join(leadDir, "design", "dist", "assets", "logo.svg"))
     );
-    assert.ok(html.includes("assets/logo.svg"));
+    assert.ok(
+      existsSync(path.join(leadDir, "design", "dist", "assets", "photo-1.jpg"))
+    );
     assert.ok(html.includes("assets/photo-1.jpg"));
     assert.ok(!html.includes("{{"));
-    assert.ok(!html.includes('id="faq"'));
 
     const build = JSON.parse(
       readFileSync(path.join(leadDir, result.build_json), "utf8")

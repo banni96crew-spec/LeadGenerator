@@ -1,25 +1,16 @@
 <section class="materials" id="materials">
   <div class="materials__grid">
     <figure class="materials__media reveal">
-      <img
-        src="{{#photos.4}}{{photos.4}}{{/photos.4}}{{^photos.4}}assets/materials-detail.png{{/photos.4}}"
-        alt="Крупный план известняка, тёмного дерева и латунной фурнитуры"
-        width="1200"
-        height="900"
-        loading="lazy"
-      />
+      <img src="{{photos.4.src}}" alt="Материалы" width="1200" height="900" loading="lazy" />
     </figure>
     <div class="materials__copy reveal">
-      <p class="eyebrow">Материалы</p>
-      <h2>То, что остаётся после красивой картинки</h2>
-      <p class="prose">Мы не меняем узлы «по ходу», чтобы уложиться в чужой бюджет. Спецификация фиксируется до старта: несущие конструкции, мембраны, остекление, инженерия. Экономия — в правильной последовательности, а не в скрытых заменах.</p>
+      <p class="eyebrow">{{materials.eyebrow}}</p>
+      <h2>{{materials.h2}}</h2>
+      <p class="prose">{{materials.prose}}</p>
       <ul class="checklist">
-        {{#symptoms}}
-        <li>
-          <span class="checklist__pain">{{pain}}</span>
-          <span class="checklist__solve">{{solve}}</span>
-        </li>
-        {{/symptoms}}
+        <li>{{materials.items.0}}</li>
+        <li>{{materials.items.1}}</li>
+        <li>{{materials.items.2}}</li>
       </ul>
     </div>
   </div>

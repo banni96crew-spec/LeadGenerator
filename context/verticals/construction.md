@@ -15,17 +15,20 @@
 
 ## Section order (slots = content.json)
 
-1. **hero** — `eyebrow`, `headline`, `subheadline`, `cta`
-2. **trust[]** — 3–4: `title`, `text` (только факты из audit/research/lead; без выдуманных цифр) → design-system `proof`
-3. **symptoms[]** — минимум 4: `pain`, `solve` → design-system `materials`
-4. **why_us[]** — минимум 3: `title`, `text` → design-system `projects`
-5. **contact** — `phone`, `cta` (данные для contact partial + form chrome)
+1. **hero** — `headline`, `subheadline`, `cta_primary`, `cta_secondary`
+2. **proof[]** — ровно 4: `value`, `label` (без выдуманных цифр; digit-primary только с evidence в lead/audit|research)
+3. **approach** — `eyebrow`, `h2`, `prose`, `steps[4]` `{title,text}`
+4. **projects** — `eyebrow`, `h2`, `lead`, `items[3]` `{title,text}`
+5. **materials** — `eyebrow`, `h2`, `prose`, `items[3]` strings
+6. **footer_tagline** — строка после ©
 
-## Static blocks (Copy не заполняет)
+Телефон / geo — из `lead.json` (не из content).
 
-- **approach** — шаги от брифа до сдачи (steps chrome)
-- **promise** — смета / график / ответственный
-- **contact** form chrome — декоративная форма консультации
+## Static blocks (Copy не заполняет wording)
+
+- **promise** — смета / график / ответственный (цвета через brand CSS vars)
+- **contact** form chrome — labels / legal / submit «Запросить консультацию»
+- Nav labels: Подход / Проекты / Материалы / Консультация
 - **Нет** `faq`, **нет** sticky mobile-bar
 
 ## Copy tone
@@ -35,8 +38,8 @@
 ## Aesthetic direction (Design)
 
 - Atrium layout + construction chrome: stone/cream neutrals, accent from brand (`#9c7a3c` default in tokens if unset).
-- Hero: full-bleed house photo; logo — hero-primary brand signal. Header wordmark (`{{brand.name}}`) allowed (atrium).
-- Self-hosted Onest + Manrope; motion = CSS + deferred `main.js` (nav / reveal / form) + `prefers-reduced-motion`.
+- Hero: full-bleed house photo; brand colors on `:root` (`--ink`, `--accent`, …) including fixed sections.
+- Self-hosted Onest; motion = CSS + deferred `main.js` (nav / reveal / form) + `prefers-reduced-motion`.
 - Prefer `capture/logo.*` и `photo-*` в `design/dist/assets/`; если capture пуст — defaults из `context/design-system/assets/`.
 - Template id в `build.json`: **`atrium-v1`**.
 

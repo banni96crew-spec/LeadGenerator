@@ -1,8 +1,8 @@
 <section class="hero" id="top" aria-label="Главный экран">
   <div class="hero__media">
     <img
-      src="{{#photos.0}}{{photos.0}}{{/photos.0}}{{^photos.0}}assets/hero-house.png{{/photos.0}}"
-      alt="Современный частный дом из известняка и тёмного дерева с панорамным остеклением"
+      src="{{photos.0.src}}"
+      alt="Фасад проекта"
       width="1920"
       height="1080"
       fetchpriority="high"
@@ -10,19 +10,12 @@
   </div>
   <div class="hero__veil" aria-hidden="true"></div>
   <div class="hero__content">
-    <p class="hero__brand">
-      {{#brand.logo}}
-      <img src="{{brand.logo}}" alt="{{brand.name}}" />
-      {{/brand.logo}}
-      {{^brand.logo}}
-      {{brand.name}}
-      {{/brand.logo}}
-    </p>
+    <p class="hero__brand">{{brand.name}}</p>
     <h1 class="hero__title">{{hero.headline}}</h1>
     <p class="hero__lead">{{hero.subheadline}}</p>
     <div class="hero__actions">
-      <a class="btn btn--primary" href="#contact">{{hero.cta}}</a>
-      <a class="btn btn--ghost" href="#projects">Смотреть дома</a>
+      <a class="btn btn--primary" href="#contact">{{hero.cta_primary}}</a>
+      <a class="btn btn--ghost" href="#projects">{{hero.cta_secondary}}</a>
     </div>
   </div>
 </section>

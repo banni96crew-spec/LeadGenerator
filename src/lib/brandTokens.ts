@@ -4,11 +4,19 @@ import { REPO_ROOT } from "./paths.js";
 
 export type BrandTokens = {
   primary: string;
+  accent_hover: string;
+  accent_soft: string;
+  ink: string;
+  ink_soft: string;
   font: string;
   logo?: string;
 };
 
-const DEFAULT_PRIMARY = "#1c2b24";
+const DEFAULT_PRIMARY = "#9c7a3c";
+const DEFAULT_ACCENT_HOVER = "#856632";
+const DEFAULT_ACCENT_SOFT = "#e4c48a";
+const DEFAULT_INK = "#14161a";
+const DEFAULT_INK_SOFT = "#3a3d44";
 const DEFAULT_FONT = "Onest, Manrope, Segoe UI, sans-serif";
 
 function readDesignSystemPrimary(): string {
@@ -51,10 +59,15 @@ function resolveCaptureLogoRel(leadDir: string): string | undefined {
 /**
  * Code-only brand extraction for Design build.json.
  * Logo path from capture/meta.json assets.logo (any extension).
+ * Color tokens cascade into fixed sections via :root CSS vars.
  */
 export function resolveBrandTokens(leadDir: string): BrandTokens {
   const tokens: BrandTokens = {
     primary: readDesignSystemPrimary(),
+    accent_hover: DEFAULT_ACCENT_HOVER,
+    accent_soft: DEFAULT_ACCENT_SOFT,
+    ink: DEFAULT_INK,
+    ink_soft: DEFAULT_INK_SOFT,
     font: DEFAULT_FONT,
   };
 

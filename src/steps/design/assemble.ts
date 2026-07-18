@@ -32,12 +32,19 @@ const DEFAULT_PHOTO_RELS = [
   "assets/hero-house.png", // reuse for project3
   "assets/materials-detail.png",
 ] as const;
+const CONTACT_HOURS = "ежедневно 10:00–20:00";
 
 const DESIGN_SYSTEM_DIR = path.join(REPO_ROOT, "context", "design-system");
 
+type BuildBrandTokens = {
+  primary: string;
+  font: string;
+  logo?: string;
+};
+
 export type AssembleDesignResult = {
   template: string;
-  brand_tokens: BrandTokens;
+  brand_tokens: BuildBrandTokens;
   build_dir: "design/dist";
   index_html: string;
   build_json: string;
@@ -46,25 +53,44 @@ export type AssembleDesignResult = {
 type ContentJson = {
   schema_version: string;
   vertical: string;
+  footer_tagline: string;
   sections: {
     hero: {
-      eyebrow: string;
       headline: string;
       subheadline: string;
-      cta: string;
+      cta_primary: string;
+      cta_secondary: string;
     };
-    trust: Array<{ title: string; text: string }>;
-    symptoms: Array<{ pain: string; solve: string }>;
-    why_us: Array<{ title: string; text: string }>;
-    contact: { phone: string; cta: string; phone_digits?: string };
+    proof: Array<{ value: string; label: string }>;
+    approach: {
+      eyebrow: string;
+      h2: string;
+      prose: string;
+      steps: Array<{ title: string; text: string }>;
+    };
+    projects: {
+      eyebrow: string;
+      h2: string;
+      lead: string;
+      items: Array<{ title: string; text: string }>;
+    };
+    materials: {
+      eyebrow: string;
+      h2: string;
+      prose: string;
+      items: string[];
+    };
   };
   reuse_facts: string[];
 };
 
-function phoneDigits(phone: string, explicit?: string): string {
-  if (explicit && explicit.trim()) {
-    return explicit.replace(/\D/g, "") || explicit.trim();
-  }
+type LeadJson = {
+  name?: string;
+  phone?: string;
+  geo?: string;
+};
+
+function phoneDigits(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
@@ -199,33 +225,59 @@ function padPhotoSrcs(copiedPhotoRels: string[]): string[] {
   return photos;
 }
 
+function contactNote(geo: string | undefined): string {
+  const trimmed = geo?.trim() ?? "";
+  if (trimmed) return `${trimmed} · ${CONTACT_HOURS}`;
+  return CONTACT_HOURS;
+}
+
 function buildView(opts: {
   content: ContentJson;
   brandName: string;
   brand: BrandTokens;
+  phone: string;
+  geo?: string;
   photoSrcs: string[];
 }): Record<string, unknown> {
-  const contact = opts.content.sections.contact;
   const brand: Record<string, unknown> = {
     name: opts.brandName,
     primary: opts.brand.primary,
+    accent_hover: opts.brand.accent_hover,
+    accent_soft: opts.brand.accent_soft,
+    ink: opts.brand.ink,
+    ink_soft: opts.brand.ink_soft,
     font: opts.brand.font,
   };
   if (opts.brand.logo) {
     brand.logo = opts.brand.logo;
   }
 
+  const projects = opts.content.sections.projects;
+  const materials = opts.content.sections.materials;
+
   return {
     brand,
     hero: opts.content.sections.hero,
-    trust: opts.content.sections.trust,
-    symptoms: opts.content.sections.symptoms,
-    why_us: opts.content.sections.why_us.slice(0, 3),
-    contact: {
-      phone: contact.phone,
-      cta: contact.cta,
-      phone_digits: phoneDigits(contact.phone, contact.phone_digits),
+    proof: opts.content.sections.proof,
+    approach: opts.content.sections.approach,
+    projects: {
+      eyebrow: projects.eyebrow,
+      h2: projects.h2,
+      lead: projects.lead,
+      items: projects.items,
     },
+    materials: {
+      eyebrow: materials.eyebrow,
+      h2: materials.h2,
+      prose: materials.prose,
+      items: materials.items,
+    },
+    contact: {
+      phone: opts.phone,
+      phone_digits: phoneDigits(opts.phone),
+      note: contactNote(opts.geo),
+    },
+    footer_tagline: opts.content.footer_tagline,
     photos: opts.photoSrcs.map((src) => ({ src })),
   };
 }
@@ -278,10 +330,14 @@ export async function assembleDesign(
   if (!existsSync(leadPath)) {
     throw new Error(`lead.json missing under ${leadDir}`);
   }
-  const lead = JSON.parse(readFileSync(leadPath, "utf8")) as { name?: string };
+  const lead = JSON.parse(readFileSync(leadPath, "utf8")) as LeadJson;
   const brandName = String(lead.name ?? "").trim();
   if (!brandName) {
     throw new Error(`lead.json name missing under ${leadDir}`);
+  }
+  const phone = String(lead.phone ?? "").trim();
+  if (!phone) {
+    throw new Error(`lead.phone required for atrium contact`);
   }
 
   const template = resolveTemplateId(content.vertical);
@@ -303,9 +359,16 @@ export async function assembleDesign(
   // 3. Overlay capture logo/photos into dist/assets/
   const copiedPhotos = copyCaptureAssets(leadDir, assetsDir, brand);
 
-  // 4. Build Mustache view (pad photos, slice why_us)
+  // 4. Build Mustache view (pad photos)
   const photoSrcs = padPhotoSrcs(copiedPhotos);
-  const view = buildView({ content, brandName, brand, photoSrcs });
+  const view = buildView({
+    content,
+    brandName,
+    brand,
+    phone,
+    geo: lead.geo,
+    photoSrcs,
+  });
 
   // 5. Mustache render (SLOT:header + SLOT:partials)
   const shell = loadPageTemplate();
@@ -316,7 +379,7 @@ export async function assembleDesign(
   const indexAbs = path.join(leadDir, indexRel);
   writeFileSync(indexAbs, html, "utf8");
 
-  const buildTokens: BrandTokens = {
+  const buildTokens: BuildBrandTokens = {
     primary: brand.primary,
     font: brand.font,
   };

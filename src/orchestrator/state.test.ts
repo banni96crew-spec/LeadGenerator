@@ -194,30 +194,47 @@ describe("shouldSkip copy", () => {
       JSON.stringify({
         schema_version: "1.0",
         vertical: "construction",
+        footer_tagline: "Премиум-строительство.",
         sections: {
           hero: {
-            eyebrow: "Подход",
             headline: "Дом под ключ",
             subheadline: "Фиксированная смета",
-            cta: "Рассчитать проект",
+            cta_primary: "Рассчитать проект",
+            cta_secondary: "Смотреть дома",
           },
-          trust: [
-            { title: "A", text: "a" },
-            { title: "B", text: "b" },
-            { title: "C", text: "c" },
+          proof: [
+            { value: "A", label: "a" },
+            { value: "B", label: "b" },
+            { value: "C", label: "c" },
+            { value: "D", label: "d" },
           ],
-          symptoms: [
-            { pain: "p1", solve: "s1" },
-            { pain: "p2", solve: "s2" },
-            { pain: "p3", solve: "s3" },
-            { pain: "p4", solve: "s4" },
-          ],
-          why_us: [
-            { title: "W1", text: "w1" },
-            { title: "W2", text: "w2" },
-            { title: "W3", text: "w3" },
-          ],
-          contact: { phone: "+7", cta: "Заявка" },
+          approach: {
+            eyebrow: "Подход",
+            h2: "Как работаем",
+            prose: "Один контур на объект.",
+            steps: [
+              { title: "S1", text: "t1" },
+              { title: "S2", text: "t2" },
+              { title: "S3", text: "t3" },
+              { title: "S4", text: "t4" },
+            ],
+          },
+          projects: {
+            eyebrow: "Проекты",
+            h2: "Кейсы",
+            lead: "Истории участков.",
+            items: [
+              { title: "W1", text: "w1" },
+              { title: "W2", text: "w2" },
+              { title: "W3", text: "w3" },
+            ],
+          },
+          materials: {
+            eyebrow: "Материалы",
+            h2: "Спецификация",
+            prose: "До старта.",
+            items: ["i1", "i2", "i3"],
+          },
         },
         reuse_facts: ["факт"],
       })

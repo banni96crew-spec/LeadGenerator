@@ -7,7 +7,7 @@
       <p class="contact__phone">
         <a href="tel:{{contact.phone_digits}}">{{contact.phone}}</a>
       </p>
-      <p class="contact__note">Москва и область · ежедневно 10:00–20:00</p>
+      <p class="contact__note">{{contact.note}}</p>
     </div>
 
     <form class="form reveal" data-form novalidate>
@@ -23,7 +23,7 @@
         <label for="site">Участок или задача</label>
         <textarea id="site" name="site" rows="4" placeholder="Посёлок, площадь, ориентир по бюджету"></textarea>
       </div>
-      <button class="btn btn--primary btn--block" type="submit">{{contact.cta}}</button>
+      <button class="btn btn--primary btn--block" type="submit">Запросить консультацию</button>
       <p class="form__legal">Нажимая кнопку, вы соглашаетесь на обратный звонок. Мы не передаём контакты третьим лицам.</p>
       <p class="form__success" data-form-success hidden>Заявка принята. Перезвоним в течение рабочего дня.</p>
     </form>

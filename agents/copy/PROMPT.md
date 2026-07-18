@@ -11,7 +11,7 @@
 
 | File | Purpose |
 |------|---------|
-| `leads/{lead_id}/lead.json` | name, phone, geo, category |
+| `leads/{lead_id}/lead.json` | name, phone, geo, category (телефон в content **не** пиши — assemble берёт из lead) |
 | `leads/{lead_id}/audit.json` **или** `research.json` | факты бизнеса, findings → углы копирайта |
 | `context/verticals/{vertical}.md` | слоты, тон ниши (`construction.md`) |
 | `context/tone-of-voice.md` | стиль |
@@ -26,41 +26,60 @@
 {
   "schema_version": "1.0",
   "vertical": "construction",
+  "footer_tagline": "...",
   "sections": {
     "hero": {
-      "eyebrow": "...",
       "headline": "...",
       "subheadline": "...",
-      "cta": "..."
+      "cta_primary": "...",
+      "cta_secondary": "..."
     },
-    "trust": [
-      { "title": "...", "text": "..." }
+    "proof": [
+      { "value": "...", "label": "..." }
     ],
-    "symptoms": [
-      { "pain": "...", "solve": "..." }
-    ],
-    "why_us": [
-      { "title": "...", "text": "..." }
-    ],
-    "contact": { "phone": "...", "cta": "..." }
+    "approach": {
+      "eyebrow": "...",
+      "h2": "...",
+      "prose": "...",
+      "steps": [
+        { "title": "...", "text": "..." }
+      ]
+    },
+    "projects": {
+      "eyebrow": "...",
+      "h2": "...",
+      "lead": "...",
+      "items": [
+        { "title": "...", "text": "..." }
+      ]
+    },
+    "materials": {
+      "eyebrow": "...",
+      "h2": "...",
+      "prose": "...",
+      "items": ["...", "...", "..."]
+    }
   },
   "reuse_facts": ["реальные факты из audit/lead"]
 }
 ```
 
+Кардинальность: `proof` ровно 4; `approach.steps` ровно 4; `projects.items` ровно 3; `materials.items` ровно 3. **Нет** `contact` в content.
+
 ## Rules
 
 - Русский язык, деловой тон, без воды.
-- CTA обязателен в `hero` и `contact`.
-- `trust` — 3–4 пункта; только факты из audit/research/lead; **без выдуманных цифр** (4.9, 12000+, фейковые отзывы).
-- `symptoms` ≥ 4: типичные боли ниши + `solve` из USP лида.
-- `why_us` ≥ 3: конкретные отличия процесса/сервиса.
-- **Не заполняй** статические блоки шаблона: steps, FAQ, contact-form — они в design-system.
-- `contact` — данные для формы/FAQ/mobile-bar; отдельной contact-секции на странице нет.
-- `reuse_facts` — конкретные услуги, гео, телефон из входов.
+- `hero.cta_primary` + `hero.cta_secondary` обязательны (два CTA в hero). Submit формы «Запросить консультацию» — HTML-фикс, не поле Copy.
+- `proof[]` — 4× `{value,label}`; `value` ≤12 символов. Предпочитай качественные значения («Фикс», «Отчёт»), если нет evidenced метрик. **Не выдумывай** цифры/проценты. Digit-primary values (`12`, `86%`, `24/7`) должны встречаться в lead/audit|research — `reuse_facts` сам по себе не спасает G3.
+- `approach` — полный блок LLM (eyebrow, h2, prose, steps×4), включая шаги.
+- `projects` / `materials` — персонализация кейсов и чеклиста под лида.
+- `footer_tagline` — короткая строка после ©.
+- Не заполняй фиксированный chrome: «Принципы» (promise), form labels/legal/submit консультации, nav labels.
+- `reuse_facts` — конкретные услуги, гео из входов (не телефон как замена contact).
 - Запрещены клише без фактов.
 - `vertical` = `construction`.
 
 ## After write
 
-Попроси оператора: `npm run pipeline -- --lead leads/{id} --stage copy` (G3).
+Попроси оператора: `npm run pipeline -- --lead leads/{id} --stage copy` (G3).  
+Если у лида старый clinic-shaped `content.json` — перезапиши atrium-native shape и перезапусти Copy.

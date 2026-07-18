@@ -13,7 +13,7 @@
 | 1 | **Blackboard-архитектура: файловая система = шина сообщений.** Агенты не общаются напрямую, только через JSON-артефакты на диске. | Даёт минимальный контекст, заменяемость, повторный запуск любого этапа, детерминизм. |
 | 2 | **Orchestrator — это код (Node/TS или Python), а не LLM.** Конечный автомат (state machine) над файлами состояния. | Детерминизм, дешевизна, тестируемость, отсутствие «галлюцинаций маршрутизации». |
 | 3 | **Screenshot и Publish — НЕ агенты, а детерминированные шаги (Playwright / Git+Cloudflare).** | Здесь нет рассуждений. LLM тут — трата токенов и источник ошибок. |
-| 4 | **Design Agent не «пишет сайт с нуля», а собирает его из design-system + vertical-шаблонов.** | Радикально повышает повторяемость и качество, снижает токены. Компромисс — меньше уникальности (решается набором архетипов). |
+| 4 | **Design Agent не «пишет сайт с нуля», а собирает его из design-system (шаблон atrium-v1) + vertical `construction`.** | Радикально повышает повторяемость и качество, снижает токены. Компромисс — меньше уникальности (персонализация слотов + brand tokens лида). |
 | 5 | **Реальные ассеты клиента (логотип, фото, факты) переиспользуются в демо.** | Владелец видит СВОЙ бизнес, а не абстрактный шаблон → конверсия в продажу выше. |
 | 6 | **5 LLM-агентов**: Research (условный), Audit, Copy, Design, Offer. Остальное — код. | «Один агент = одна ответственность» + минимизация LLM-этапов. |
 | 7 | **Каждый переход через Quality Gate**: сначала детерминированная валидация (schema + технические проверки), затем — только где нужно — LLM-критик. | Надёжность без лишних токенов. |
@@ -29,6 +29,8 @@
 - **Сайта нет** → research компании → персонализация на основе research.
 
 Триггер: пользователь пишет `«Подготовь оффер для Domeo»`. Оркестратор находит лид в Excel/данных, запускает пайплайн.
+
+Поддерживаемая ниша пайплайна: **construction** (премиум-строительство домов). Демо-шаблон: **atrium-v1** (`context/design-system/`; эталон layout — каталог `atrium/`, не удалять). Clinic и прочие вертикали не поддерживаются.
 
 ---
 
@@ -105,8 +107,8 @@ has_website = bool(lead.site) AND site_reachable(lead.site)  # HTTP 200 + не �
 |-------|-----------------|-----------|
 | **Research** (условный) | Собрать факты о компании, если нет сайта: ниша, услуги, гео, конкуренты, боли клиентов. | Синтез разрозненной инфы из веб-поиска. |
 | **Audit** | Человеческим языком доказать, почему сайт теряет деньги. | Суждение, аргументация, язык. |
-| **Copy** | Новые тексты для демо (заголовки, офферы, CTA, блоки). | Копирайтинг. |
-| **Design** | Собрать сайт из design-system + vertical-шаблона, разложить копирайт по слотам, подобрать композицию. | Дизайн-решения, адаптация под нишу. |
+| **Copy** | Тексты atrium-слотов демо (hero, proof, approach, projects, materials, footer). | Копирайтинг. |
+| **Design** | Собрать сайт из design-system atrium-v1 + `construction`, разложить копирайт по слотам, brand tokens. | Дизайн-решения в рамках atrium IA. |
 | **Offer** | Персональное сообщение + УТП + сборка ссылок. | Персонализированный текст продажи. |
 
 **Q2 — Лишние агенты (убрать из списка агентов):**
@@ -198,7 +200,7 @@ LLM-QA : Design-Critic (мини-агент только на финальном
 **`lead.json`** (вход):
 ```jsonc
 { "schema_version": "1.0", "lead_id": "domeo", "name": "Domeo",
-  "site": "https://domeo.ru", "phone": "...", "category": "ремонт квартир",
+  "site": "https://domeo.ru", "phone": "...", "category": "строительство домов",
   "geo": "Москва", "source": "yandex_maps", "raw": { } }
 ```
 
@@ -227,18 +229,57 @@ LLM-QA : Design-Critic (мини-агент только на финальном
   "tone": "деловой, уверенный, без воды" }
 ```
 
-**`content.json`** (выход Copy → вход Design):
+**`content.json`** (выход Copy → вход Design; atrium-native, vertical `construction`):
 ```jsonc
 { "schema_version": "1.0", "vertical": "construction",
   "sections": {
-    "hero": { "eyebrow": "...", "headline": "...", "subheadline": "...", "cta": "..." },
-    "trust": [ { "title": "...", "text": "..." } ],
-    "symptoms": [ { "pain": "...", "solve": "..." } ],
-    "why_us": [ { "title": "...", "text": "..." } ],
-    "contact": { "phone": "...", "cta": "...", "phone_digits": "..." }
+    "hero": {
+      "headline": "Дом под ключ без скрытых доплат",
+      "subheadline": "Фиксированная смета, график и один ответственный на объекте",
+      "cta_primary": "Рассчитать проект",
+      "cta_secondary": "Смотреть объекты"
+    },
+    "proof": [
+      { "value": "Фикс", "label": "смета до старта" },
+      { "value": "ДА", "label": "приёмка скрытых работ" },
+      { "value": "Один", "label": "ответственный на площадке" },
+      { "value": "Гарантия", "label": "на конструкцию" }
+    ],
+    "approach": {
+      "eyebrow": "Как строим",
+      "h2": "От брифа до сдачи",
+      "prose": "Прозрачный процесс без сюрпризов на площадке",
+      "steps": [
+        { "title": "Бриф и участок", "text": "..." },
+        { "title": "Проект и смета", "text": "..." },
+        { "title": "Строительство", "text": "..." },
+        { "title": "Сдача", "text": "..." }
+      ]
+    },
+    "projects": {
+      "eyebrow": "Объекты",
+      "h2": "Примеры домов",
+      "lead": "Реальные сценарии для заказчика участка",
+      "items": [
+        { "title": "...", "text": "..." },
+        { "title": "...", "text": "..." },
+        { "title": "...", "text": "..." }
+      ]
+    },
+    "materials": {
+      "eyebrow": "Материалы",
+      "h2": "Что фиксируем до старта",
+      "prose": "Узлы и комплектация без «по ходу разберёмся»",
+      "items": ["...", "...", "..."]
+    }
   },
+  "footer_tagline": "Строим дома, в которых живут десятилетиями",
   "reuse_facts": ["настоящие услуги/факты из audit/research/lead"] }
 ```
+
+Кардинальность слотов: `proof` ровно 4× `{value,label}`; `approach.steps` ровно 4; `projects.items` ровно 3; `materials.items` ровно 3. В `content.json` **нет** `contact` (телефон/гео — из `lead.json` при assemble), **нет** `trust` / `symptoms` / `why_us` / `contact.cta`.
+
+**Фиксированный product chrome** (Copy не пишет): блок «Принципы» (promise) и chrome формы «Консультация» (eyebrow/H2/prose, лейблы, legal, success, submit «Запросить консультацию», суффикс часов). AI/Design **могут** перекрашивать текст этих секций через brand CSS-переменные на `:root` (`--ink`, `--ink-soft`, `--accent`, `--accent-hover` и связанные), не меняя русскую формулировку chrome.
 
 **`design/build.json`**:
 ```jsonc
@@ -296,10 +337,11 @@ LeadGenerator/
 ├─ context/                 # см. §11
 │  ├─ positioning.md
 │  ├─ portfolio.json
-│  ├─ design-system/
-│  ├─ verticals/            # шаблоны по нишам
+│  ├─ design-system/        # atrium-v1 (partials, tokens, assets)
+│  ├─ verticals/            # construction.md → template atrium-v1
 │  ├─ audit-framework.md
 │  └─ tone-of-voice.md
+├─ atrium/                  # эталон layout/CSS; не удалять
 ├─ schemas/                 # JSON Schema всех контрактов
 ├─ leads.xlsx               # источник лидов
 └─ leads/                   # РАБОЧИЕ ДАННЫЕ (артефакты blackboard)
@@ -353,8 +395,8 @@ LeadGenerator/
 |-------|----------------|
 | Research | источники только веб-поиск/MCP; помечать уверенность фактов; не выдумывать конкурентов. |
 | Audit | тон «человеческим языком», не техжаргон; каждый finding = claim+evidence+impact+severity; фокус на «потере денег/доверия/конверсии»; без воды. |
-| Copy | пишет под конкретную нишу; переиспользует реальные факты бизнеса; CTA обязателен; без клише. |
-| Design | ТОЛЬКО из design-system + vertical-шаблона; запрет генерации произвольного CSS-хаоса; обязательна адаптивность; brand tokens из capture. |
+| Copy | atrium-слоты `construction`; реальные факты; `cta_primary`+`cta_secondary`; без `contact`/clinic-слотов; без клише и выдуманных цифр. |
+| Design | ТОЛЬКО atrium-v1 + `construction`; assemble из design-system; brand tokens → CSS vars (в т.ч. fixed chrome); запрет CSS-хаоса; адаптивность. |
 | Offer | персонализация обязательна («почему именно эта компания»); все ссылки присутствуют; длина сообщения ограничена. |
 
 **Обоснование разделения:** глобальные rules гарантируют системные инварианты (контракты, честность, стоимость); агентские — предметную специфику. Так добавление нового агента не требует правки чужих rules.
@@ -385,8 +427,8 @@ Skills = переиспользуемые процедуры, которые д�
 |------|-----------|-----------|
 | `context/positioning.md` | твоё позиционирование, ЦА, оффер услуги | Offer, Copy |
 | `context/portfolio.json` | кейсы, ссылки на прошлые работы | Offer |
-| `context/design-system/` | компоненты, токены, layout-паттерны | Design |
-| `context/verticals/*.md` | архетипы сайтов по нишам (ремонт, стоматология, автосервис…) | Design, Copy |
+| `context/design-system/` | atrium-v1: shell, partials, tokens, assets (эталон — `atrium/`) | Design |
+| `context/verticals/construction.md` | единственная ниша: construction → template `atrium-v1` | Design, Copy |
 | `context/audit-framework.md` | чек-лист «что заставляет сайт терять деньги» (доверие, скорость, mobile, CTA, соц.доказательство) | Audit |
 | `context/tone-of-voice.md` | правила стиля текстов | Audit, Copy, Offer |
 | `context/pricing.md` | тарифы/пакеты | Offer |
@@ -489,7 +531,7 @@ sequenceDiagram
 |------|-------------|----------------------------------|--------------|----------------------|
 | **G1** | Capture | скрины не пустые/не белые, HTTP 200, текст ≥ X символов, meta по схеме | — | retry capture (др. viewport/wait), иначе стоп |
 | **G2** | Audit | схема валидна, ≥N findings, у каждого evidence-ссылка существует | self-check «нет выдуманных цифр, тон человеческий» | retry audit |
-| **G3** | Copy | все обязательные секции заполнены, CTA есть, язык RU | — | retry copy |
+| **G3** | Copy | схема atrium-content; обязательные секции (`hero` с `cta_primary`+`cta_secondary`, `proof`×4, `approach`+steps×4, `projects` items×3, `materials` items×3, `footer_tagline`); язык RU; digit-primary `proof.value` evidenced в корпусе `lead.json` + (`audit.json`\|`research.json`) — `reuse_facts` отдельно не считается | — | retry copy |
 | **G4** | Design | билд собирается, адаптивность (нет overflow), 0 console errors, previews отрендерены | **Design-Critic**: «выглядит ли это как сайт, который владелец захочет купить?» (оценка по скринам) | retry design (или др. шаблон) |
 | **G5** | Publish | demo_url → 200, Lighthouse perf ≥ порог, no console errors | — | re-deploy |
 | **G6** | Offer | все ссылки резолвятся (200), присутствует «почему эта компания», длина в лимите | tone-check | retry offer |
@@ -508,8 +550,8 @@ sequenceDiagram
 | Capture | code+browser | `lead.json` | `capture/*` | `has_website` | G1 |
 | Research | LLM | `lead.json`, context | `research.json` | `!has_website` | G2 |
 | Audit | LLM | `capture/*`, `audit-framework` | `audit.json` | после G1 | G2 |
-| Copy | LLM | `audit.json`\|`research.json`, `verticals`, `tone` | `content.json` | после G2 | G3 |
-| Design | LLM | `content.json`, `design-system`, `capture/logo` | `design/*` | после G3 | G4 |
+| Copy | LLM | `lead.json`, `audit.json`\|`research.json`, `verticals/construction`, `tone` | `content.json` | после G2 | G3 |
+| Design | LLM+code assemble | `content.json`, `design-system` (atrium-v1), `lead.json`, `capture/*` | `design/*` | после G3 | G4 |
 | Publish | code+browser | `design/dist` | `deploy.json` | после G4 | G5 |
 | Offer | LLM | `audit/research`, `deploy.json`, `portfolio`, `pricing` | `offer/*` | после G5 | G6 |
 
@@ -528,7 +570,7 @@ sequenceDiagram
 
 | Риск | Митигирование | Компромисс |
 |------|---------------|-----------|
-| Шаблонный дизайн выглядит «одинаково» | Несколько vertical-архетипов + brand tokens + реальные ассеты клиента | Меньше «уникальности ручной работы» ради повторяемости |
+| Шаблонный дизайн выглядит «одинаково» | atrium-v1 + brand tokens (в т.ч. цвет текста fixed chrome) + реальные ассеты/факты лида | Меньше «уникальности ручной работы» ради повторяемости |
 | Playwright ловит анти-бот/куки-баннеры | wait/stealth, дампы для отладки, retry в G1 | Иногда capture требует ручной проверки |
 | LLM выдумывает факты в аудите | `evidence-only` + `no-fabricated-numbers` + G2 проверяет наличие evidence | Аудит осторожнее в цифрах (но честнее) |
 | Cloudflare лимиты на проекты | Один проект + подпути `/{lead}` или очистка старых демо | Управление жизненным циклом демо |
@@ -554,11 +596,11 @@ sequenceDiagram
 
 1. **Фундамент:** `schemas/`, `state.json`, Orchestrator-скелет, роутинг `has_website`, Capture (Playwright). *→ проверяем, что артефакты собираются.*
 2. **Аудит-ветка:** Audit Agent + G2 + `audit-framework.md`. *→ получаем убедительный анализ.*
-3. **Контент+дизайн:** design-system + 1 vertical-шаблон, Copy, Design, G3/G4 + Design-Critic. *→ первое демо.*
+3. **Контент+дизайн:** design-system atrium-v1 + vertical `construction`, Copy, Design, G3/G4 + Design-Critic. *→ первое демо.*
 4. **Публикация:** Publish (Cloudflare) + G5.
 5. **Оффер:** Offer + G6 + `portfolio`/`pricing`.
 6. **Ветка без сайта:** Research + подключение к Copy.
-7. **Масштабирование:** параллелизм по лидам, идемпотентность, cost-логирование, доп. vertical-шаблоны.
+7. **Масштабирование:** параллелизм по лидам, идемпотентность, cost-логирование (доп. шаблоны — вне текущего scope construction-only).
 
 Так систему можно вводить в строй по одному вертикальному срезу, каждый этап тестируется изолированно, а финальная система остаётся надёжной, детерминированной и почти полностью автоматической.
 

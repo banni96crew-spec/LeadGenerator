@@ -5,36 +5,56 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { runGateG3 } from "./g3Copy.js";
 
-function validContent(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function validContent(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
   return {
     schema_version: "1.0",
     vertical: "construction",
+    footer_tagline: "Премиум-строительство частных домов.",
     sections: {
       hero: {
-        eyebrow: "Подход",
         headline: "Дом под ключ с фиксированной сметой",
         subheadline: "Архитектура, инженерия и контроль на площадке",
-        cta: "Рассчитать проект",
+        cta_primary: "Рассчитать проект",
+        cta_secondary: "Смотреть дома",
       },
-      trust: [
-        { title: "Фикс", text: "Смета до старта работ" },
-        { title: "Контроль", text: "Приёмка скрытых узлов" },
-        { title: "Гарантия", text: "На несущую конструкцию" },
+      proof: [
+        { value: "Фикс", label: "Смета до старта работ" },
+        { value: "Контроль", label: "Приёмка скрытых узлов" },
+        { value: "Гарантия", label: "На несущую конструкцию" },
+        { value: "Отчёт", label: "Еженедельно по объекту" },
       ],
-      symptoms: [
-        { pain: "Боль 1", solve: "Решение 1" },
-        { pain: "Боль 2", solve: "Решение 2" },
-        { pain: "Боль 3", solve: "Решение 3" },
-        { pain: "Боль 4", solve: "Решение 4" },
-      ],
-      why_us: [
-        { title: "Плюс 1", text: "Текст 1" },
-        { title: "Плюс 2", text: "Текст 2" },
-        { title: "Плюс 3", text: "Текст 3" },
-      ],
-      contact: {
-        phone: "+7 (495) 000-00-00",
-        cta: "Запросить консультацию",
+      approach: {
+        eyebrow: "Подход",
+        h2: "Строим так, будто сами будем жить рядом",
+        prose: "Ведём объект от эскиза до сдачи одной командой.",
+        steps: [
+          { title: "Бриф", text: "Выезд и ограничения участка" },
+          { title: "Проект", text: "Смета до старта" },
+          { title: "Стройка", text: "Контроль узлов" },
+          { title: "Сдача", text: "Гарантия и сервис" },
+        ],
+      },
+      projects: {
+        eyebrow: "Проекты",
+        h2: "Дома, которые уже стоят",
+        lead: "Каждый объект — отдельная история участка.",
+        items: [
+          { title: "Дом у леса", text: "Кирпич и панорама" },
+          { title: "Интерьер", text: "Свет и воздух" },
+          { title: "Фасад", text: "Известняк и дерево" },
+        ],
+      },
+      materials: {
+        eyebrow: "Материалы",
+        h2: "То, что остаётся после картинки",
+        prose: "Спецификация фиксируется до старта.",
+        items: [
+          "Независимый контроль скрытых работ",
+          "Поставщики с прослеживаемой партией",
+          "Инженерия в проекте",
+        ],
       },
     },
     reuse_facts: ["Строительство частных домов", "Москва"],
@@ -42,78 +62,162 @@ function validContent(overrides: Record<string, unknown> = {}): Record<string, u
   };
 }
 
-function writeContent(leadDir: string, data: Record<string, unknown>): void {
-  writeFileSync(path.join(leadDir, "content.json"), JSON.stringify(data, null, 2));
+function writeLeadBundle(
+  leadDir: string,
+  content: Record<string, unknown>,
+  opts?: { audit?: Record<string, unknown>; research?: Record<string, unknown> }
+): void {
+  writeFileSync(
+    path.join(leadDir, "lead.json"),
+    JSON.stringify(
+      {
+        schema_version: "1.0",
+        lead_id: "t",
+        name: "Тест",
+        phone: "+7 495 000-00-00",
+        geo: "Москва",
+      },
+      null,
+      2
+    )
+  );
+  writeFileSync(
+    path.join(leadDir, "content.json"),
+    JSON.stringify(content, null, 2)
+  );
+  if (opts?.audit) {
+    writeFileSync(
+      path.join(leadDir, "audit.json"),
+      JSON.stringify(opts.audit, null, 2)
+    );
+  }
+  if (opts?.research) {
+    writeFileSync(
+      path.join(leadDir, "research.json"),
+      JSON.stringify(opts.research, null, 2)
+    );
+  }
 }
 
 describe("runGateG3", () => {
-  it("passes on valid content.json", () => {
+  it("passes on valid qualitative content.json", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
-    writeContent(leadDir, validContent());
+    writeLeadBundle(leadDir, validContent());
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, true);
     assert.equal(result.gate, "G3");
   });
 
-  it("fails when hero.cta empty", () => {
+  it("fails when hero.cta_primary empty", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
     const data = validContent();
     const sections = data.sections as Record<string, unknown>;
     sections.hero = {
-      eyebrow: "Подход",
       headline: "Заголовок",
       subheadline: "Подзаголовок",
-      cta: " ",
+      cta_primary: " ",
+      cta_secondary: "Смотреть",
     };
-    writeContent(leadDir, data);
+    writeLeadBundle(leadDir, data);
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, false);
-    assert.ok(result.errors.some((e) => e.includes("hero.cta")));
+    assert.ok(result.errors.some((e) => e.includes("hero.cta_primary")));
   });
 
-  it("fails when trust < 3", () => {
+  it("fails when proof length != 4", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
     const data = validContent();
     const sections = data.sections as Record<string, unknown>;
-    sections.trust = [
-      { title: "A", text: "a" },
-      { title: "B", text: "b" },
+    sections.proof = [
+      { value: "A", label: "a" },
+      { value: "B", label: "b" },
     ];
-    writeContent(leadDir, data);
+    writeLeadBundle(leadDir, data);
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, false);
-    assert.ok(result.errors.some((e) => e.includes("trust")));
+    assert.ok(
+      result.errors.some(
+        (e) => e.includes("proof") || e.includes("minItems")
+      )
+    );
   });
 
-  it("fails when symptoms < 4", () => {
+  it("passes digit-primary proof when evidenced in audit", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
     const data = validContent();
     const sections = data.sections as Record<string, unknown>;
-    sections.symptoms = [
-      { pain: "a", solve: "b" },
-      { pain: "c", solve: "d" },
-      { pain: "e", solve: "f" },
+    sections.proof = [
+      { value: "12", label: "лет на рынке" },
+      { value: "Фикс", label: "смета" },
+      { value: "Отчёт", label: "еженедельно" },
+      { value: "Сервис", label: "после сдачи" },
     ];
-    writeContent(leadDir, data);
+    writeLeadBundle(leadDir, data, {
+      audit: {
+        schema_version: "1.0",
+        note: "компания работает 12 лет",
+      },
+    });
+    const result = runGateG3({ lead_id: "t", leadDir });
+    assert.equal(result.pass, true, result.errors.join("; "));
+  });
+
+  it("fails digit-primary proof without audit/research corpus", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
+    const data = validContent();
+    const sections = data.sections as Record<string, unknown>;
+    sections.proof = [
+      { value: "12", label: "лет" },
+      { value: "Фикс", label: "a" },
+      { value: "Отчёт", label: "b" },
+      { value: "Сервис", label: "c" },
+    ];
+    writeLeadBundle(leadDir, data);
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, false);
-    assert.ok(result.errors.some((e) => e.includes("symptoms")));
+    assert.ok(
+      result.errors.some((e) => e.includes("no audit/research corpus"))
+    );
+  });
+
+  it("fails digit-primary when only reuse_facts has the number", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
+    const data = validContent({
+      reuse_facts: ["12 лет строим"],
+    });
+    const sections = data.sections as Record<string, unknown>;
+    sections.proof = [
+      { value: "12", label: "лет" },
+      { value: "Фикс", label: "a" },
+      { value: "Отчёт", label: "b" },
+      { value: "Сервис", label: "c" },
+    ];
+    writeLeadBundle(leadDir, data, {
+      audit: { schema_version: "1.0", note: "без цифр про срок" },
+    });
+    const result = runGateG3({ lead_id: "t", leadDir });
+    assert.equal(result.pass, false);
+    assert.ok(result.errors.some((e) => e.includes("not evidenced")));
   });
 
   it("fails on bad schema", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
-    writeContent(leadDir, { schema_version: "1.0" });
+    writeLeadBundle(leadDir, { schema_version: "1.0" });
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, false);
   });
 
-  it("hints legacy renovation schema", () => {
+  it("hints legacy content schema", () => {
     const leadDir = mkdtempSync(path.join(tmpdir(), "lg-g3-"));
-    writeContent(leadDir, {
+    writeLeadBundle(leadDir, {
       schema_version: "1.0",
       vertical: "renovation",
       sections: {
-        hero: { headline: "Заголовок", subheadline: "Подзаголовок", cta: "Записаться" },
+        hero: {
+          headline: "Заголовок",
+          subheadline: "Подзаголовок",
+          cta: "Записаться",
+        },
         benefits: [{ title: "A", text: "a" }],
         social_proof: { cases: ["Кейс 1"] },
         contact: { phone: "+7", cta: "Позвонить" },
@@ -122,8 +226,6 @@ describe("runGateG3", () => {
     });
     const result = runGateG3({ lead_id: "t", leadDir });
     assert.equal(result.pass, false);
-    assert.ok(
-      result.errors.some((e) => e.includes("legacy renovation schema"))
-    );
+    assert.ok(result.errors.some((e) => e.includes("legacy content schema")));
   });
 });

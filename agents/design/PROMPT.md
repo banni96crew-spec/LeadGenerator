@@ -12,25 +12,25 @@
 ## MUST
 
 1. Сборка только через design-system / assemble — без free-form CSS/layout.
-2. Header: nav + CTA; atrium wordmark (`{{brand.name}}`) **разрешён**. Logo mark — hero-primary brand signal.
-3. Hero: full-bleed photo (`{{photos.0}}`), H1 + sub + один CTA; `{{hero.eyebrow}}` — в approach.
+2. Header: nav + CTA; atrium wordmark (`{{brand.name}}`) **разрешён**.
+3. Hero: full-bleed photo (`{{photos.0.src}}`), H1 + sub + **два** CTA (`cta_primary`, `cta_secondary`).
 4. Нет cards/badge-шума в первом viewport.
-5. Один accent; atrium construction chrome (Подход / Проекты / Материалы / Консультация).
+5. Brand colors via `:root` CSS vars (`--ink`, `--ink-soft`, `--accent`, `--accent-hover`, `--accent-soft`) — применяются и к фиксированным секциям (Принципы / Консультация wording не трогать).
 6. Self-hosted кириллические шрифты из design-system (без CDN / Google Fonts).
 7. Motion: CSS + deferred vanilla `main.js` (nav / reveal / form only) + `prefers-reduced-motion`; без framework bundles.
-8. Prefer capture-ассеты; если пусто — design-system defaults в `dist/assets/` (pad ≥5). Все слоты закрыты; approach / promise / form chrome — статика; **нет** FAQ.
+8. Prefer capture-ассеты; если пусто — design-system defaults в `dist/assets/` (pad ≥5). Все LLM-слоты закрыты; **promise wording** и **contact form chrome** — статика; телефон/geo из `lead.json`; **нет** FAQ.
 
 ## Preconditions
 
 - G3 pass: валидный `content.json`.
-- Не читай `audit.json` findings как основной вход — только `content.json` + design context + capture assets.
+- Не читай `audit.json` findings как основной вход — только `content.json` + design context + capture assets + `lead.json`.
 
 ## Inputs (read only)
 
 | File | Purpose |
 |------|---------|
-| `leads/{lead_id}/content.json` | слоты: hero, trust, symptoms, why_us, contact |
-| `leads/{lead_id}/lead.json` | name |
+| `leads/{lead_id}/content.json` | слоты: hero, proof, approach, projects, materials, footer_tagline |
+| `leads/{lead_id}/lead.json` | name, phone (required), geo (optional) |
 | `context/design-system/` | `shell.html`, partials, `tokens.css`, `base.css`, `main.js`, `assets/` |
 | `context/verticals/construction.md` | template id (`atrium-v1`), aesthetic |
 | `capture/logo.*`, `capture/photo-*.{jpg,png,webp}` | реальные ассеты (пути из `meta.assets`) когда есть |
@@ -38,7 +38,7 @@
 ## Output
 
 1. `leads/{lead_id}/design/dist/index.html` — собранный сайт (слоты заполнены, **без** оставшихся `{{...}}`).
-2. `design/dist/tokens.css`, `design/dist/base.css`, `design/dist/main.js` — из design-system; в `index.html` инжект `--color-primary` / font из brand_tokens.
+2. `design/dist/tokens.css`, `design/dist/base.css`, `design/dist/main.js` — из design-system; в `index.html` инжект brand CSS vars.
 3. `design/dist/assets/` — capture logo/photos и/или design-system default PNGs (относительные пути).
 4. `leads/{lead_id}/design/build.json`:
 
@@ -60,8 +60,9 @@
 
 - **Не** запускай render-preview — orchestrator в `--stage design`.
 - **Не** пиши `critic.json` — это Design-Critic.
-- **Не** добавляй FAQ или sticky mobile-bar — contact = phone + form chrome в `partials/contact.html`.
+- **Не** добавляй FAQ или sticky mobile-bar — contact = phone из lead + form chrome в `partials/contact.html`.
 - **Не** подключай внешние stock URL — только capture или `context/design-system/assets/`.
+- **Не** удаляй каталог `atrium/` в корне репозитория.
 
 ## After write
 

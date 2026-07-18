@@ -99,7 +99,7 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 После Copy. Precondition: `audit.status === done` (`has_website`) или `research.status === done` (`no_website`).
 
-**Code checks:** schema; hero+contact CTA; trust ≥3; symptoms ≥4; why_us ≥3; Russian heuristic; vertical non-empty.
+**Code checks:** schema; hero `cta_primary`+`cta_secondary`; proof×4 (+ digit-primary evidence in lead/audit|research); approach.steps×4; projects.items×3; materials.items×3; `footer_tagline`; Russian heuristic; vertical non-empty. No `contact` in content (phone from `lead.json`).
 
 **A1:** агент пишет `content.json` → `npm run pipeline -- --lead … --stage copy`. Exit `3` = awaiting content.json. Max attempts `G3_MAX_ATTEMPTS=2`.
 
