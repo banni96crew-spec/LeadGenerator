@@ -173,12 +173,38 @@ const examples: Array<{ name: string; data: unknown }> = [
       notes: ["Герой читается сразу", "Логотип клиента на месте"],
     },
   },
+  {
+    name: "deploy-empty-checks",
+    data: {
+      schema_version: "1.0",
+      demo_url: "https://domeo.leadgenerator-demos.pages.dev",
+      checks: {},
+    },
+  },
+  {
+    name: "deploy",
+    data: {
+      schema_version: "1.0",
+      demo_url: "https://domeo.leadgenerator-demos.pages.dev",
+      checks: {
+        http_200: true,
+        no_console_errors: true,
+        lighthouse_perf: 92,
+      },
+    },
+  },
 ];
+
+function schemaNameForFixture(name: string): string {
+  if (name === "state-has-website") return "state";
+  if (name === "deploy-empty-checks") return "deploy";
+  return name;
+}
 
 let failed = 0;
 for (const example of examples) {
   try {
-    assertValid(example.data, example.name === "state-has-website" ? "state" : example.name);
+    assertValid(example.data, schemaNameForFixture(example.name));
     console.log(`OK ${example.name}`);
   } catch (err) {
     failed += 1;

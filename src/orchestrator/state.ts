@@ -5,6 +5,7 @@ import { auditArtifactIsValid } from "../lib/auditArtifacts.js";
 import { captureArtifactIsValid } from "../lib/captureArtifacts.js";
 import { contentArtifactIsValid } from "../lib/contentArtifacts.js";
 import { designArtifactIsValid } from "../lib/designArtifacts.js";
+import { deployArtifactIsValid } from "../lib/deployArtifacts.js";
 import { stateFile } from "../lib/paths.js";
 import {
   ALL_STAGES,
@@ -112,6 +113,10 @@ export function shouldSkip(
 
   if (stageName === "design") {
     return designArtifactIsValid(ctx);
+  }
+
+  if (stageName === "publish") {
+    return deployArtifactIsValid(ctx);
   }
 
   const artifactPath = path.join(leadDir, stage.artifact);

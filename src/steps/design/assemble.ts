@@ -26,11 +26,11 @@ const BODY_PARTIALS = [
   "footer",
 ] as const;
 const DEFAULT_PHOTO_RELS = [
-  "assets/hero-house.png",
-  "assets/project-exterior.png",
-  "assets/project-interior.png",
-  "assets/hero-house.png", // reuse for project3
-  "assets/materials-detail.png",
+  "assets/hero-house.webp",
+  "assets/project-exterior.webp",
+  "assets/project-interior.webp",
+  "assets/hero-house.webp", // reuse for project3
+  "assets/materials-detail.webp",
 ] as const;
 const CONTACT_HOURS = "ежедневно 10:00–20:00";
 

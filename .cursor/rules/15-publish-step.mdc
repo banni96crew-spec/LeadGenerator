@@ -1,5 +1,5 @@
 ---
-description: Publish step — Cloudflare Pages deploy, deploy.json, smoke checks. Milestone 4; scaffold rule now.
+description: Publish step — Cloudflare Pages deploy, deploy.json, smoke checks. Milestone 4.
 globs:
   - "src/steps/publish/**"
 alwaysApply: false
@@ -16,17 +16,21 @@ Editing `src/steps/publish/` — deploy demo build after Design stage (milestone
 - [PRD.md](PRD.md) §7.2 (`deploy.json`), §14 G5, §10 (`deploy-cloudflare` skill).
 - Level A `03-pipeline-gates` (G5 policy).
 - Level A `02-llm-invariants` (deploy is code, not LLM).
+- CONVENTIONS — Gate G5 (branch-per-lead, retry cycles).
 
 ## Required behavior
 
 - **Entry**: `runPublish(leadDir, buildDir): Promise<string>` — returns path to `deploy.json`.
-- **Input**: `leads/{id}/design/dist/` (static build from Design stage).
-- **Deploy**: Cloudflare Pages API or CLI wrapper; URL pattern per project config; write `demo_url` to `deploy.json`.
-- **deploy.json**: `{ schema_version, demo_url, checks: { http_200, lighthouse_perf, no_console_errors } }`.
-- **Post-deploy smoke** (G5): verify `demo_url` returns 200, no console errors (Playwright), Lighthouse perf ≥ threshold from config.
+- **Input**: `leads/{id}/design/dist/` (static build from Design stage); precondition `design.status === done`.
+- **Deploy**: Wrangler Pages; **branch-per-lead** `--branch={lead_id}` → `demo_url` = `https://{lead_id}.{CLOUDFLARE_PAGES_PROJECT}.pages.dev`. Never deploy lead demos to production `main`. PRD §17 subpath deferred.
+- **Two-phase `deploy.json`**:
+  1. After deploy: `{ schema_version, demo_url, checks: {} }` (schema-valid).
+  2. After smoke (`smokeTestUrl`): populate `checks.http_200`, `checks.no_console_errors`, `checks.lighthouse_perf` (Lighthouse **required** for M4).
+  3. Gate G5 reads `checks` only — does not run smoke.
+- **Post-deploy smoke**: HTTP 200, Playwright console errors, Lighthouse via Playwright `chromePath` ≥ `LIGHTHOUSE_PERF_MIN` (default 85).
 - **Secrets**: `CLOUDFLARE_API_TOKEN`, account/project IDs via env only — never committed.
-- **On fail**: return error to orchestrator for re-deploy retry per G5.
-- **State**: `publish.status`, `artifact: deploy.json`, `cost: 0`.
+- **On fail**: return error to orchestrator; full-cycle retry (deploy+smoke+G5) up to `PUBLISH_MAX_ATTEMPTS=2`.
+- **State**: orchestrator sets `publish.status: done`, `artifact: deploy.json`, `cost: 0`, `hash === design.hash` only after G5 pass.
 
 ## Forbidden behavior
 
@@ -34,18 +38,20 @@ Editing `src/steps/publish/` — deploy demo build after Design stage (milestone
 - Do not hardcode API tokens or account IDs.
 - Do not use LLM for deploy decisions.
 - Do not skip G5 smoke after deploy.
-- Do not implement in Foundation milestone — stub/placeholder OK until milestone 4.
+- Do not set `publish.status: done` inside publish/smoke modules — orchestrator after G5.
+- Do not embed Playwright/Lighthouse inside `runGateG5`.
+- Do not treat PRD subpath as M4 default — use branch-per-lead preview URLs.
 
 ## Output requirements
 
-- Valid `deploy.json` per schema (when `deploy.schema.json` exists).
-- `demo_url` publicly reachable after successful publish.
-- G5 checks recorded in `deploy.json.checks`.
+- Valid `deploy.json` per `schemas/deploy.schema.json` (`checks: {}` after deploy; full checks after smoke).
+- `demo_url` publicly reachable preview URL after successful publish.
+- G5 checks recorded in `deploy.json.checks` before gate evaluation.
 
 ## Verification checklist
 
-- [ ] `deploy.json` validates against schema.
-- [ ] `demo_url` returns HTTP 200.
-- [ ] G5 smoke passes before `publish.status = done`.
+- [ ] `deploy.json` validates against schema (`{}` and full checks).
+- [ ] `demo_url` is branch-per-lead `https://{lead_id}.{project}.pages.dev` and returns HTTP 200.
+- [ ] Smoke fills checks; G5 passes before `publish.status = done`.
 - [ ] No secrets in repo or artifacts.
-- [ ] Stub module compiles if full deploy not yet implemented (milestone 4).
+- [ ] Lighthouse runs (no skip stub); Chromium missing → smoke fail.

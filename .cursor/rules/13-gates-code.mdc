@@ -17,17 +17,19 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
 - Level A `03-pipeline-gates` (thresholds, retry, fail policy).
 - Level A `01-contract-first` (when to validate).
 - Foundation: `validate.ts`, `g1Capture.ts`.
+- M4: `g5Publish.ts` — G5 reads `deploy.json.checks` only.
 
 ## Required behavior
 
 - **`validate.ts`**: single ajv instance + `ajv-formats`; `assertValid(data, schemaName)` throws or returns errors with JSON path; compile schemas once at startup.
-- **Gate modules**: one file per gate or `g1Capture.ts`, `g2Audit.ts`, etc.; export `runGateG1(ctx): GateResult` pattern.
+- **Gate modules**: one file per gate or `g1Capture.ts`, `g2Audit.ts`, `g5Publish.ts`, etc.; export `runGateG1(ctx): GateResult` pattern.
 - **Read-only**: gates inspect artifacts on disk; never mutate input files or `state.json` directly — return result to orchestrator.
 - **G1 implementation** (Foundation):
   - Validate `capture/meta.json` against `capture-meta.schema.json`.
   - `http_status === 200`.
   - Screenshots exist, size > 5120 bytes, dimensions > 0.
   - `text.txt` length ≥ 200 characters.
+- **G5 implementation** (M4): `runGateG5` validates `deploy.json` schema, then requires full `checks` (`http_200`, `no_console_errors`, `lighthouse_perf >= LIGHTHOUSE_PERF_MIN`). Empty `checks: {}` → fail. **No** fetch, Playwright, or Lighthouse inside the gate — smoke (`src/steps/publish/smoke.ts`) owns those.
 - **GateResult**: always `{ pass, gate, errors[], warnings? }`; errors human-readable with file paths.
 - **Diagnostics on fail**: include `lead_id`, `stage`, `gate`, artifact path, specific reason.
 - **No LLM in gates code** except future thin wrappers for G2/G4/G6 critic — not in Foundation.
@@ -38,13 +40,14 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
 - Do not advance pipeline from inside gate module.
 - Do not weaken G1 thresholds (5KB, 200 chars) without PRD update.
 - Do not skip schema validation before tech checks.
-- Do not import Playwright in gate modules (file-system checks only for G1).
+- Do not import Playwright (or run network/Lighthouse) in gate modules — filesystem / artifact reads only (G1 files; G5 `deploy.json.checks`).
 - Do not catch and swallow validation errors.
 
 ## Output requirements
 
 - `runGateG1` returns `pass: true` only when all G1 checks satisfied per `03-pipeline-gates`.
-- Unit tests: happy path, empty screenshot, short text, invalid schema (when test scaffold exists).
+- `runGateG5` returns `pass: true` only when `deploy.json.checks` meet G5 thresholds (smoke already ran).
+- Unit tests: happy path, empty screenshot, short text, invalid schema (when test scaffold exists); G5 empty checks fail.
 
 ## Verification checklist
 
@@ -53,3 +56,4 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
 - [ ] G1 passes on valid Foundation capture output.
 - [ ] Gate modules are read-only.
 - [ ] No LLM imports in `src/gates/`.
+- [ ] G5 has zero Playwright/network/Lighthouse imports; empty checks fail.

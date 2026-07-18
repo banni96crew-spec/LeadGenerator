@@ -6,6 +6,7 @@ import { runGateG1 } from "../gates/g1Capture.js";
 import { runGateG2 } from "../gates/g2Audit.js";
 import { runGateG3 } from "../gates/g3Copy.js";
 import { runGateG4 } from "../gates/g4Design.js";
+import { runGateG5 } from "../gates/g5Publish.js";
 import {
   leadFile,
   normalizeSiteUrl,
@@ -27,6 +28,8 @@ import {
 import { runCapture } from "../steps/capture/index.js";
 import { assembleDesign } from "../steps/design/assemble.js";
 import { renderPreview } from "../steps/design/renderPreview.js";
+import { runPublish } from "../steps/publish/index.js";
+import { smokeTestUrl } from "../steps/publish/smoke.js";
 import type { Lead, PipelineState, StageName } from "../lib/types.js";
 
 // G1_MAX_ATTEMPTS=3: 1 primary capture + 2 retries per CONVENTIONS
@@ -35,6 +38,8 @@ const G1_MAX_ATTEMPTS = 3;
 const G2_MAX_ATTEMPTS = 3;
 const G3_MAX_ATTEMPTS = 2;
 const G4_MAX_ATTEMPTS = 2;
+/** Any failure in deploy OR smoke OR G5 → full cycle retry */
+const PUBLISH_MAX_ATTEMPTS = 2;
 /** A1 seam: agent artifact missing (audit/content/design/critic) */
 const EXIT_AWAITING = 3;
 
@@ -126,9 +131,45 @@ function clearDesignGateArtifacts(leadDir: string): void {
   }
 }
 
-function invalidateDesign(state: PipelineState, leadDir?: string): void {
+function clearPublishArtifact(leadDir: string): void {
+  const deployPath = path.join(leadDir, "deploy.json");
+  if (existsSync(deployPath)) {
+    try {
+      unlinkSync(deployPath);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+export function invalidatePublish(state: PipelineState, leadDir?: string): void {
+  if (leadDir) clearPublishArtifact(leadDir);
+  resetStagePending(state, "publish");
+}
+
+/** Resets design and cascades to publish (clears local deploy.json when leadDir set). */
+export function invalidateDesign(state: PipelineState, leadDir?: string): void {
   if (leadDir) clearDesignGateArtifacts(leadDir);
   resetStagePending(state, "design");
+  invalidatePublish(state, leadDir);
+}
+
+/** When design.hash diverges from publish.hash, reset publish so demo is not stale. */
+export function syncPublishWithDesignHash(
+  state: PipelineState,
+  leadDir?: string
+): void {
+  const designHash = state.stages.design.hash;
+  const publishStage = state.stages.publish;
+  if (
+    !designHash ||
+    !publishStage.hash ||
+    publishStage.hash === designHash ||
+    (publishStage.status !== "done" && publishStage.status !== "failed")
+  ) {
+    return;
+  }
+  invalidatePublish(state, leadDir);
 }
 
 function invalidateCopy(state: PipelineState, leadDir?: string): void {
@@ -816,6 +857,179 @@ async function runDesignGate(
   return { state, exitCode: attempts >= G4_MAX_ATTEMPTS ? 1 : 1 };
 }
 
+/** Optional seams for unit tests (defaults to real publish / smoke / G5). */
+export type PublishGateDeps = {
+  runPublish?: typeof runPublish;
+  smokeTestUrl?: typeof smokeTestUrl;
+  runGateG5?: typeof runGateG5;
+};
+
+export async function runPublishGate(
+  lead: Lead,
+  leadDir: string,
+  state: PipelineState,
+  force: boolean,
+  deps: PublishGateDeps = {}
+): Promise<{ state: PipelineState; exitCode: number }> {
+  const stageName: StageName = "publish";
+  const publishFn = deps.runPublish ?? runPublish;
+  const smokeFn = deps.smokeTestUrl ?? smokeTestUrl;
+  const gateFn = deps.runGateG5 ?? runGateG5;
+
+  if (state.stages.design.status !== "done") {
+    const error = `lead_id=${lead.lead_id} stage=publish reason=design not done`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "failed",
+      message: error,
+    });
+    return { state, exitCode: 1 };
+  }
+
+  syncPublishWithDesignHash(state, leadDir);
+
+  if (state.stages[stageName].status === "running" && !force) {
+    updateStage(state, stageName, { status: "pending" });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "reset",
+      cost: 0,
+      message: "stale running reset to pending",
+    });
+  }
+
+  const inputHash = state.stages.design.hash;
+  if (!inputHash) {
+    const error = `lead_id=${lead.lead_id} stage=publish reason=design hash missing`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    return { state, exitCode: 1 };
+  }
+
+  if (
+    shouldSkip(
+      state.stages[stageName],
+      inputHash,
+      force,
+      lead.lead_id,
+      leadDir,
+      stageName
+    )
+  ) {
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "skipped",
+      cost: 0,
+      message: "idempotent skip",
+    });
+    return { state, exitCode: 0 };
+  }
+
+  const started = Date.now();
+  let attempts = 0;
+  let lastError = "";
+
+  // Local cycle counter (like G1): each invocation gets a fresh retry budget.
+  // Persisted attempts remain for diagnostics but do not block re-run/--force.
+  while (attempts < PUBLISH_MAX_ATTEMPTS) {
+    attempts += 1;
+    updateStage(state, stageName, {
+      status: "running",
+      attempts,
+      error: undefined,
+    });
+    saveState(state);
+
+    try {
+      const artifact = await publishFn({
+        leadId: lead.lead_id,
+        leadDir,
+      });
+      const deployAbs = path.isAbsolute(artifact)
+        ? artifact
+        : path.join(leadDir, artifact);
+      const deploy = JSON.parse(readFileSync(deployAbs, "utf8")) as {
+        demo_url?: string;
+      };
+      const demoUrl = deploy.demo_url?.trim() ?? "";
+      if (!demoUrl) {
+        throw new Error("deploy.json missing demo_url after runPublish");
+      }
+
+      const smoke = await smokeFn(demoUrl, leadDir);
+      if (!smoke.pass) {
+        throw new Error(
+          smoke.errors.join("; ") || "smoke checks failed"
+        );
+      }
+
+      const gate = gateFn({ lead_id: lead.lead_id, leadDir });
+      if (gate.pass) {
+        updateStage(state, stageName, {
+          status: "done",
+          artifact: "deploy.json",
+          hash: inputHash,
+          cost: 0,
+          error: undefined,
+        });
+        saveState(state);
+        logStage({
+          lead_id: lead.lead_id,
+          stage: stageName,
+          status: "done",
+          ms: Date.now() - started,
+          cost: 0,
+        });
+        return { state, exitCode: 0 };
+      }
+
+      lastError = formatGateErrors(
+        lead.lead_id,
+        "publish",
+        "G5",
+        gate.errors
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      lastError = `lead_id=${lead.lead_id} stage=publish gate=G5 reason=${message}`;
+    }
+
+    updateStage(state, stageName, {
+      status: "failed",
+      attempts,
+      error: lastError,
+    });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "gate_fail",
+      ms: Date.now() - started,
+      message: lastError,
+    });
+
+    if (attempts >= PUBLISH_MAX_ATTEMPTS) {
+      return { state, exitCode: 1 };
+    }
+  }
+
+  updateStage(state, stageName, {
+    status: "failed",
+    attempts,
+    error:
+      lastError ||
+      `lead_id=${lead.lead_id} stage=publish gate=G5 reason=max attempts exhausted`,
+  });
+  saveState(state);
+  return { state, exitCode: 1 };
+}
+
 export async function runPipeline(
   options: PipelineOptions
 ): Promise<{ state: PipelineState; exitCode: number }> {
@@ -870,9 +1084,11 @@ export async function runPipeline(
       return runCopyGate(lead, leadDir, state, force);
     case "design":
       return runDesignGate(lead, leadDir, state, force);
+    case "publish":
+      return runPublishGate(lead, leadDir, state, force);
     default:
       throw new Error(
-        `M3 milestone implements capture|audit|copy|design (got ${targetStage})`
+        `M4 milestone implements capture|audit|copy|design|publish (got ${targetStage})`
       );
   }
 }

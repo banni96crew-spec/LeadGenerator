@@ -13,7 +13,7 @@ Orchestrator CLI and state machine procedure.
 - Running or debugging `npm run pipeline -- --data ...` or `--lead ... --stage ...`.
 - Understanding why `state.json` shows `failed`, `pending`, or stage did not advance.
 - Applying `--force` to bypass idempotency skip.
-- User asks about gate retry, stage order, or Foundation capture-only scope.
+- User asks about gate retry, stage order, or milestone scope through M4 publish + G5.
 - User says **«полный pipeline с gates»**, **«запусти pipeline»**, or wants end-to-end run (not just resolve lead).
 
 **Not for:** isolated schema validation (`validate-contract`). Not for probe-only routing (`probe-site`). Not for detailed Excel resolve (`resolve-lead`).
@@ -29,9 +29,9 @@ When the user asks to run the **full pipeline with gates** — this skill wins o
    ```bash
    npm run pipeline -- --data '{"name":"Domeo","site":"https://domeo.ru"}'
    ```
-3. **Explain Foundation scope (M1):** «полный pipeline» = resolve → branch → **capture + G1**; stages `audit`…`offer` stay `pending` until their milestones.
+3. **Explain current scope (through M4):** runnable stages `capture|audit|copy|design|publish` + G1–G5; `research`/`offer` stay pending until later milestones. Publish: deploy → smoke → G5.
 4. **If `src/` absent** — describe the procedure from §5–§8 (spec-first); ask before implementing Foundation.
-5. **Do not** implement Audit/Copy/Design/Offer in response to a run request — only execute what exists.
+5. **Do not** implement Research/Offer in response to a run request — only execute what exists.
 
 Wrong response: «Полный pipeline не реализован — создаю схемы, оркестратор…» when `src/orchestrator/` already exists. Check filesystem first, then run or report gap.
 
@@ -46,7 +46,7 @@ Wrong response: «Полный pipeline не реализован — созда
 - Planned entry: `src/orchestrator/index.ts` with `node:util` `parseArgs`.
 - `src/lib/paths.ts` for lead directories (no hardcoded absolute paths).
 - Steps and gates delegated — not inlined in `pipeline.ts`.
-- `src/` may be absent — spec-first; Foundation milestone runs **capture + G1 only**.
+- `src/` may be absent — spec-first; current code runs through **publish + G5** (M4).
 
 ## Procedure
 
@@ -56,6 +56,7 @@ Wrong response: «Полный pipeline не реализован — созда
 npm run pipeline -- --data '{"name":"Domeo","site":"https://domeo.ru"}'
 npm run pipeline -- --lead leads/domeo/lead.json
 npm run pipeline -- --lead leads/domeo --stage capture
+npm run pipeline -- --lead leads/domeo --stage publish
 npm run pipeline -- --lead leads/domeo --stage capture --force
 ```
 
@@ -124,11 +125,11 @@ Detailed G1 tech checks: `gate-g1-capture` (S8). This skill orchestrates **when*
 - If input hash unchanged and artifact valid → skip stage.
 - `--force` bypasses skip but **still runs gates**.
 
-### 8. Foundation scope (milestone 1)
+### 8. Milestone scope (through M4)
 
-Implement runnable: **capture + G1** only.
+Runnable: **capture|audit|copy|design|publish** + G1–G5.
 
-Other stages (`audit`, `copy`, `design`, `publish`, `offer`) remain `pending` stubs until their milestones. Do not wire LLM agents without explicit milestone request.
+`research` / `offer` remain pending until later milestones. Publish cycle: `runPublish` → `smokeTestUrl` → `runGateG5`; `PUBLISH_MAX_ATTEMPTS=2` full-cycle retries; `publish.hash === design.hash`.
 
 ### 9. Logging
 
@@ -169,6 +170,6 @@ Other stages (`audit`, `copy`, `design`, `publish`, `offer`) remain `pending` st
 - Do not skip gates because output «looks fine».
 - Do not embed Playwright, ajv, or gate logic inline in `pipeline.ts`.
 - Do not use LLM for routing or stage decisions.
-- Do not implement Audit/Copy/Design/Offer in Foundation without milestone approval.
+- Do not implement Research/Offer without milestone approval.
 - Do not import future LLM agent modules from orchestrator.
 - Do not duplicate full G1–G6 table — link `03-pipeline-gates` and Level 2 gate skills.

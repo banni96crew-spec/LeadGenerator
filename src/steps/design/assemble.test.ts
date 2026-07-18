@@ -114,7 +114,7 @@ describe("assembleDesign", () => {
     assert.ok(existsSync(path.join(leadDir, "design", "dist", "base.css")));
     assert.ok(
       existsSync(
-        path.join(leadDir, "design", "dist", "assets", "hero-house.png")
+        path.join(leadDir, "design", "dist", "assets", "hero-house.webp")
       )
     );
 

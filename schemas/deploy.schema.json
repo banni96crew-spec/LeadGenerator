@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "deploy.schema.json",
+  "title": "Deploy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "demo_url",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "demo_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "http_200": {
+          "type": "boolean"
+        },
+        "no_console_errors": {
+          "type": "boolean"
+        },
+        "lighthouse_perf": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    }
+  }
+}

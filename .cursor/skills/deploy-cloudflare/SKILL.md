@@ -31,7 +31,7 @@ Publish static demo build to Cloudflare Pages.
   - `CLOUDFLARE_ACCOUNT_ID`
   - `CLOUDFLARE_PAGES_PROJECT` (or project name per config)
 - Wrangler CLI or Cloudflare Pages API access.
-- Milestone 4 — stub OK in earlier milestones; procedure is spec-first until `src/steps/publish/` exists.
+- Milestone 4 — procedure matches `src/steps/publish/`.
 
 ## Procedure
 
@@ -58,53 +58,57 @@ CLOUDFLARE_ACCOUNT_ID=...
 
 ### 3. Deploy static assets
 
-**Option A — Wrangler CLI (recommended):**
+**Option A — Wrangler CLI (recommended, M4):**
 
 ```bash
 npx wrangler pages deploy design/dist \
   --project-name="$CLOUDFLARE_PAGES_PROJECT" \
-  --branch=main
+  --branch={lead_id}
 ```
 
-Deploy from `leads/{lead_id}/` working directory or pass absolute dist path via `src/lib/paths.ts` helpers.
+M4 uses **branch-per-lead** preview (not production `main`, not PRD §17 subpath). Deploy from `leads/{lead_id}/` working directory or pass absolute dist path via `src/lib/paths.ts` helpers.
 
 **Option B — Pages Direct Upload API:**
 
-Use Cloudflare API with token; upload `design/dist` bundle; obtain deployment URL.
+Use Cloudflare API with token; upload `design/dist` bundle; obtain deployment URL. Prefer Option A for M4.
 
 ### 4. Resolve `demo_url`
 
-After successful deploy, capture public URL (e.g. `https://{project}.pages.dev` or `https://{project}.pages.dev/{lead_id}` if using subpaths per PRD §17).
+After successful deploy, canonical preview URL:
 
-Write canonical `demo_url` — no placeholders like `example.com`.
+`https://{lead_id}.{CLOUDFLARE_PAGES_PROJECT}.pages.dev`
+
+Example: `https://g4-verify-construction.leadgenerator-demos.pages.dev`
+
+Write that `demo_url` — no placeholders like `example.com`. PRD §17 subpath `/{lead_id}` is deferred (needs Design `<base href>`).
 
 ### 5. Write `deploy.json`
 
-PRD §7.2 shape (initial write after deploy):
+PRD §7.2 shape (initial write after deploy — **phase 1**, empty checks):
 
 ```json
 {
   "schema_version": "1.0",
-  "demo_url": "https://domeo-demo.pages.dev",
+  "demo_url": "https://g4-verify-construction.leadgenerator-demos.pages.dev",
   "checks": {}
 }
 ```
 
 Validate with `validate-contract` / `deploy` schema when present.
 
-Populate `checks` only after `smoke-test-url` (S10, Level 2) runs — not in this skill.
+Populate `checks` only after `smoke-test-url` (S10, Level 2) runs — not in this skill. Two-phase: deploy writes `checks: {}`, smoke fills full checks, G5 reads checks only.
 
 ### 6. Handoff to smoke-test-url (G5)
 
 This skill ends after deploy + `demo_url` written.
 
-G5 smoke (HTTP 200, Playwright console errors, Lighthouse) is **S10 `smoke-test-url`** — Level 2, not S7:
+G5 smoke (HTTP 200, Playwright console errors, **Lighthouse required for M4**) is **S10 `smoke-test-url`** — Level 2, not S7:
 
 1. Orchestrator invokes `smoke-test-url` against `demo_url`.
 2. S10 populates `deploy.json.checks` (`http_200`, `lighthouse_perf`, `no_console_errors`).
-3. G5 gate evaluates checks; orchestrator updates `state.json` (`run-pipeline-stage`).
+3. G5 gate evaluates checks (read-only); orchestrator updates `state.json` (`run-pipeline-stage`).
 
-Reference G5 retry policy via `03-pipeline-gates` — do not duplicate full gate table here.
+Reference G5 retry policy via `03-pipeline-gates` / CONVENTIONS (2 full deploy+smoke+G5 cycles) — do not duplicate full gate table here.
 
 ### 7. State updates (orchestrator only)
 
@@ -115,10 +119,10 @@ Reference G5 retry policy via `03-pipeline-gates` — do not duplicate full gate
 | Input | Output |
 |-------|--------|
 | `design/dist/` | `deploy.json` |
-| Cloudflare env vars | `demo_url` (public HTTPS) |
+| Cloudflare env vars | `demo_url` (public HTTPS preview) |
 | G5 smoke results | `deploy.json.checks` (via S10 `smoke-test-url`, not this skill) |
 
-**Code owner (planned):** `src/steps/publish/`  
+**Code owner:** `src/steps/publish/`  
 **Stage:** Publish (after Design G4)
 
 ## Verification
@@ -132,7 +136,7 @@ Reference G5 retry policy via `03-pipeline-gates` — do not duplicate full gate
 
 ## Test prompts
 
-1. «Задеплой leads/domeo/design/dist на Cloudflare Pages и запиши deploy.json»
+1. «Задеплой leads/g4-verify-construction/design/dist на Cloudflare Pages (--branch=g4-verify-construction) и запиши deploy.json»
 2. «Publish с demo_url example.com для теста» (must refuse — real URL only)
 3. «Используй LLM чтобы выбрать хостинг» (must refuse — code only)
 
@@ -145,5 +149,5 @@ Reference G5 retry policy via `03-pipeline-gates` — do not duplicate full gate
 - Do not set `publish.status: done` in publish step — orchestrator after G5 pass.
 - Do not skip G5 smoke after deploy (`03-pipeline-gates`) — orchestrator runs S10, not this skill.
 - Do not write placeholder URLs in `offer.json` or `deploy.json`.
-- Do not implement full Publish in Foundation milestone — stub until milestone 4.
+- Do not deploy lead demos to production `main` — use `--branch={lead_id}` preview only.
 - Do not commit `.env` or secrets to `leads/` artifacts.

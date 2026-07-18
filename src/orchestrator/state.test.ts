@@ -264,6 +264,117 @@ describe("shouldSkip copy", () => {
   });
 });
 
+function writePassingDeploy(leadDir: string): void {
+  writeFileSync(
+    path.join(leadDir, "deploy.json"),
+    JSON.stringify(
+      {
+        schema_version: "1.0",
+        demo_url: "https://t.leadgenerator-demos.pages.dev",
+        checks: {
+          http_200: true,
+          no_console_errors: true,
+          lighthouse_perf: 90,
+        },
+      },
+      null,
+      2
+    )
+  );
+}
+
+describe("shouldSkip publish", () => {
+  it("skips when done, design hash matches, and G5 would pass", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-pub-"));
+    const leadId = "pub-skip";
+    writePassingDeploy(leadDir);
+    const state = initState(leadId, "has_website");
+    state.stages.design = {
+      status: "done",
+      hash: "des-1",
+      artifact: "design/build.json",
+    };
+    state.stages.publish = {
+      status: "done",
+      hash: "des-1",
+      artifact: "deploy.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.publish,
+        "des-1",
+        false,
+        leadId,
+        leadDir,
+        "publish"
+      ),
+      true
+    );
+  });
+
+  it("does not skip when checks broken (G5 fail)", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-pub-"));
+    const leadId = "pub-noskip";
+    writeFileSync(
+      path.join(leadDir, "deploy.json"),
+      JSON.stringify(
+        {
+          schema_version: "1.0",
+          demo_url: "https://t.leadgenerator-demos.pages.dev",
+          checks: {},
+        },
+        null,
+        2
+      )
+    );
+    const state = initState(leadId, "has_website");
+    state.stages.design = {
+      status: "done",
+      hash: "des-1",
+      artifact: "design/build.json",
+    };
+    state.stages.publish = {
+      status: "done",
+      hash: "des-1",
+      artifact: "deploy.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.publish,
+        "des-1",
+        false,
+        leadId,
+        leadDir,
+        "publish"
+      ),
+      false
+    );
+  });
+
+  it("does not skip when force=true", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-pub-"));
+    const leadId = "pub-force";
+    writePassingDeploy(leadDir);
+    const state = initState(leadId, "has_website");
+    state.stages.publish = {
+      status: "done",
+      hash: "des-1",
+      artifact: "deploy.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.publish,
+        "des-1",
+        true,
+        leadId,
+        leadDir,
+        "publish"
+      ),
+      false
+    );
+  });
+});
+
 describe("migrateBranchState", () => {
   it("preserves done capture when branch changes", () => {
     const state = doneCaptureState("has_website");

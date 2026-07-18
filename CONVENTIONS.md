@@ -25,6 +25,7 @@
 | `content.json` | `schemas/content.schema.json` |
 | `design/build.json` | `schemas/design-build.schema.json` |
 | `design/critic.json` | `schemas/critic.schema.json` |
+| `deploy.json` | `schemas/deploy.schema.json` |
 
 - `schema_version: "1.0"` обязателен
 - `additionalProperties: false` (кроме `lead.raw`)
@@ -56,7 +57,7 @@ Skip стадии только если:
 
 1. `status === done`
 2. hash входов совпал
-3. артефакт существует и проходит gate (capture — G1; audit — G2; copy — G3; design — G4)
+3. артефакт существует и проходит gate (capture — G1; audit — G2; copy — G3; design — G4; publish — G5)
 
 После `failed` повторный запуск **не** skip. `--force` всегда перезапускает.
 
@@ -129,6 +130,34 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 2. Проверить `design/dist/index.html`, `preview-desktop.png`, `preview-mobile.png`.
 3. Запустить **Design-Critic** ([`agents/design-critic/PROMPT.md`](agents/design-critic/PROMPT.md)) → записать `leads/{id}/design/critic.json`.
 4. Повторить: `npm run pipeline -- --lead leads/{id} --stage design` → exit **0**, `design.status=done`.
+
+## Gate G5 (Publish, M4)
+
+После стадии Publish. Precondition: `design.status === done` (и G4 pass).
+
+**URL (M4 operational):** branch-per-lead preview — Wrangler `--branch={lead_id}` → `demo_url` = `https://{lead_id}.{CLOUDFLARE_PAGES_PROJECT}.pages.dev`. Пример: `https://g4-verify-construction.leadgenerator-demos.pages.dev`. Не деплоить тестовые лиды на production `main`.
+
+**PRD note:** PRD §17 рекомендует subpath `/{lead_id}` на одном project; M4 **откладывает** subpath (нужен Design `<base href>`). Branch-per-lead — совместимый operational mode (один Pages project, preview branches). PRD не править без явного approval.
+
+**Two-phase `deploy.json`:**
+1. `runPublish` → `demo_url` + `checks: {}` (schema-valid)
+2. `smokeTestUrl` → заполняет `checks.http_200`, `checks.no_console_errors`, `checks.lighthouse_perf`
+3. `runGateG5` — **read-only**: читает `deploy.json.checks`, без fetch/Playwright/Lighthouse
+
+**Code checks (G5, evidence = `deploy.json.checks`):**
+- `deploy.json` валиден по схеме
+- все три поля `checks` присутствуют (пустой `{}` → G5 fail)
+- `http_200 === true`
+- `no_console_errors === true`
+- `lighthouse_perf >= LIGHTHOUSE_PERF_MIN` (default **85**; Lighthouse **required** for M4 — no skip/null stub)
+
+**A1 two-step seam:** не применяется — Publish = code (`runPublish` + smoke), без Cursor-агента и без exit `3` awaiting artifact.
+
+**Идемпотентность publish:** `publish.hash` = `design.hash`. Skip только если `publish.status=done`, hash совпал с design и G5 pass (`deployArtifactIsValid`). Invalidation design → сброс publish (`invalidatePublish`).
+
+**Retry:** `PUBLISH_MAX_ATTEMPTS = 2` = **2 полных цикла** deploy + smoke + G5. Любой fail (deploy throw / smoke fail / G5 fail) увеличивает `attempts` и при `attempts < 2` перезапускает **весь** цикл. После 2 → `publish.status=failed`.
+
+**CLI:** `npm run pipeline -- --lead leads/{id} --stage publish` (live example: `g4-verify-construction`).
 
 ## Migration: legacy content → construction
 

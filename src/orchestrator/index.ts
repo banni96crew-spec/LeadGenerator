@@ -1,8 +1,11 @@
 import { parseArgs } from "node:util";
+import { loadEnvFile } from "../lib/loadEnv.js";
 import { runPipeline } from "./pipeline.js";
 import type { StageName } from "../lib/types.js";
 
 async function main(): Promise<void> {
+  loadEnvFile();
+
   const { values } = parseArgs({
     options: {
       data: { type: "string" },
@@ -39,10 +42,10 @@ async function main(): Promise<void> {
   }
 
   console.error(
-    "Usage: npm run pipeline -- --data '{\"name\":\"...\",\"site\":\"...\"}' [--stage capture|audit|copy|design] [--force]"
+    "Usage: npm run pipeline -- --data '{\"name\":\"...\",\"site\":\"...\"}' [--stage capture|audit|copy|design|publish] [--force]"
   );
   console.error(
-    "   or: npm run pipeline -- --lead leads/domeo [--stage capture|audit|copy|design] [--force]"
+    "   or: npm run pipeline -- --lead leads/domeo [--stage capture|audit|copy|design|publish] [--force]"
   );
   process.exit(2);
 }
