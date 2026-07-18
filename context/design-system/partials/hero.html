@@ -1,34 +1,28 @@
-<section class="hero" aria-labelledby="hero-title">
-  <div class="hero__bg" aria-hidden="true">
-    {{#photos.0}}
-    <img class="hero__photo" src="{{photos.0}}" alt="" width="1600" height="1067" />
-    {{/photos.0}}
-    <div class="hero__orb"></div>
-    <div class="hero__scrim"></div>
+<section class="hero" id="top" aria-label="Главный экран">
+  <div class="hero__media">
+    <img
+      src="{{#photos.0}}{{photos.0}}{{/photos.0}}{{^photos.0}}assets/hero-house.png{{/photos.0}}"
+      alt="Современный частный дом из известняка и тёмного дерева с панорамным остеклением"
+      width="1920"
+      height="1080"
+      fetchpriority="high"
+    />
   </div>
-
-  <div class="hero__layout{{^photos.1}} hero__layout--single{{/photos.1}}">
-    <div class="hero__copy">
-      <div class="hero__brand">
-        {{#brand.logo}}
-        <img src="{{brand.logo}}" alt="{{brand.name}}" />
-        {{/brand.logo}}
-        {{^brand.logo}}
-        <span class="hero__brand-name">{{brand.name}}</span>
-        {{/brand.logo}}
-      </div>
-      <p class="hero__eyebrow">{{hero.eyebrow}}</p>
-      <h1 class="hero__title" id="hero-title">{{hero.headline}}</h1>
-      <p class="hero__sub">{{hero.subheadline}}</p>
-      <div class="hero__actions">
-        <a class="btn btn--primary" href="#contact">{{hero.cta}}</a>
-      </div>
+  <div class="hero__veil" aria-hidden="true"></div>
+  <div class="hero__content">
+    <p class="hero__brand">
+      {{#brand.logo}}
+      <img src="{{brand.logo}}" alt="{{brand.name}}" />
+      {{/brand.logo}}
+      {{^brand.logo}}
+      {{brand.name}}
+      {{/brand.logo}}
+    </p>
+    <h1 class="hero__title">{{hero.headline}}</h1>
+    <p class="hero__lead">{{hero.subheadline}}</p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="#contact">{{hero.cta}}</a>
+      <a class="btn btn--ghost" href="#projects">Смотреть дома</a>
     </div>
-
-    {{#photos.1}}
-    <div class="hero__visual">
-      <img class="hero__portrait" src="{{photos.1}}" alt="" width="800" height="1000" />
-    </div>
-    {{/photos.1}}
   </div>
 </section>

@@ -22,10 +22,10 @@ Shared context invariants: `30-context-files`. Design-system components: `31-des
 
 ## Required behavior
 
-- **One niche per file**: e.g. `clinic.md`, `dental.md` — not a universal template for all niches.
+- **One niche per file**: e.g. `construction.md` — not a universal template for all niches.
 - **Document per vertical**:
   - Niche signals (keywords, audience, typical services)
-  - `vertical` id matching filename (e.g. `clinic` → `clinic.md`)
+  - `vertical` id matching filename (e.g. `construction` → `construction.md`)
   - Section order and slot names
   - Recommended copy tone hints (reference `tone-of-voice.md`, do not duplicate)
 - **Slot alignment (mandatory)**: slots MUST match `content.json` sections:
@@ -35,7 +35,7 @@ Shared context invariants: `30-context-files`. Design-system components: `31-des
   - `why_us[]` (title, text) — min 3
   - `contact` (phone, cta)
 - **`vertical` field**: value in `content.json` must match template id/filename.
-- **Milestone 3 first vertical**: one complete archetype (`clinic`) — not a stub.
+- **Milestone 3 first vertical**: one complete archetype (`construction`) — not a stub. This pipeline is construction-only.
 - **Paired HTML** (optional): vertical may reference design-system component layout for Design agent.
 
 ## When user requests forbidden pattern

@@ -1,25 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{brand.name}} — демо</title>
-    <link rel="stylesheet" href="tokens.css" />
-    <link rel="stylesheet" href="base.css" />
-    <style>
-      :root {
-        --color-primary: {{brand.primary}};
-      }
-    </style>
-  </head>
-  <body>
-    <a class="skip-link" href="#main">К основному содержимому</a>
-    <main id="main">
-      <!-- SLOT:partials -->
-    </main>
-    <a class="mobile-bar" href="tel:{{contact.phone_digits}}">
-      <span>{{contact.cta}}</span>
-      <span class="mobile-bar__icon" aria-hidden="true">↗</span>
-    </a>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{brand.name}} — строительство частных домов</title>
+  <meta name="description" content="{{brand.name}} — премиум-строительство частных домов под ключ. Фиксированная смета, инженерный контроль, архитектура без компромиссов." />
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="base.css" />
+  <style>:root { --accent: {{brand.primary}}; --color-primary: {{brand.primary}}; }</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержанию</a>
+  <!-- SLOT:header -->
+  <main id="main">
+    <!-- SLOT:partials -->
+  </main>
+  <script src="main.js" defer></script>
+</body>
 </html>

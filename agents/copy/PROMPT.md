@@ -13,7 +13,7 @@
 |------|---------|
 | `leads/{lead_id}/lead.json` | name, phone, geo, category |
 | `leads/{lead_id}/audit.json` **или** `research.json` | факты бизнеса, findings → углы копирайта |
-| `context/verticals/{vertical}.md` | слоты, тон ниши (`clinic.md`) |
+| `context/verticals/{vertical}.md` | слоты, тон ниши (`construction.md`) |
 | `context/tone-of-voice.md` | стиль |
 
 ## Output
@@ -25,7 +25,7 @@
 ```json
 {
   "schema_version": "1.0",
-  "vertical": "clinic",
+  "vertical": "construction",
   "sections": {
     "hero": {
       "eyebrow": "...",
@@ -59,7 +59,7 @@
 - `contact` — данные для формы/FAQ/mobile-bar; отдельной contact-секции на странице нет.
 - `reuse_facts` — конкретные услуги, гео, телефон из входов.
 - Запрещены клише без фактов.
-- `vertical` = `clinic`.
+- `vertical` = `construction`.
 
 ## After write
 

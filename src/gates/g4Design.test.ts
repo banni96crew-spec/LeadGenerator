@@ -41,7 +41,7 @@ function writePassingDist(
     JSON.stringify(
       {
         schema_version: "1.0",
-        template: "clinic-v1",
+        template: "atrium-v1",
         brand_tokens: {
           primary: "#1c2b24",
           font: "Manrope, system-ui, sans-serif",
@@ -133,7 +133,7 @@ describe("runGateG4", () => {
       path.join(designDir, "build.json"),
       JSON.stringify({
         schema_version: "1.0",
-        template: "clinic-v1",
+        template: "atrium-v1",
         brand_tokens: { primary: "#111", font: "sans-serif" },
         build_dir: "design/dist",
         screens: ["design/preview-desktop.png", "design/preview-mobile.png"],
@@ -152,7 +152,7 @@ describe("runGateG4", () => {
       JSON.stringify(
         {
           schema_version: "1.0",
-          template: "clinic-v1",
+          template: "atrium-v1",
           brand_tokens: {
             primary: "#1c2b24",
             font: "Manrope, system-ui, sans-serif",

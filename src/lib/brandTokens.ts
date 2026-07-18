@@ -9,7 +9,7 @@ export type BrandTokens = {
 };
 
 const DEFAULT_PRIMARY = "#1c2b24";
-const DEFAULT_FONT = "Manrope, Segoe UI, system-ui, sans-serif";
+const DEFAULT_FONT = "Onest, Manrope, Segoe UI, sans-serif";
 
 function readDesignSystemPrimary(): string {
   const tokensPath = path.join(

@@ -215,7 +215,7 @@ React/Next запрещён в design-system.
 ```
 32-vertical-templates: один niche per file; слоты = hero, trust, symptoms, why_us, contact.
 
-Создать clinic.md с полным slot mapping под PRD §7.2?
+Создать construction.md с полным slot mapping под PRD §7.2?
 ```
 
 ## 14. Demo — ignore client assets

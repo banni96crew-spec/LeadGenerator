@@ -193,13 +193,13 @@ describe("shouldSkip copy", () => {
       path.join(leadDir, "content.json"),
       JSON.stringify({
         schema_version: "1.0",
-        vertical: "clinic",
+        vertical: "construction",
         sections: {
           hero: {
-            eyebrow: "Клиника",
-            headline: "Приём терапевта",
-            subheadline: "Диагностика",
-            cta: "Записаться",
+            eyebrow: "Подход",
+            headline: "Дом под ключ",
+            subheadline: "Фиксированная смета",
+            cta: "Рассчитать проект",
           },
           trust: [
             { title: "A", text: "a" },

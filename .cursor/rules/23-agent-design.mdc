@@ -28,18 +28,18 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 - **Agent role**: set/fix `content.json` slots and `brand_tokens`, then reassemble; after Design-Critic fail — fix inputs/tokens and re-run assemble — **not** free-form CSS or a redrawn site.
 - **MUST**:
   1. Assembly only via design-system / assemble — no free-form CSS/layout.
-  2. Brand-first hero: one logo signal, full-bleed photo, H1 + sub + one CTA.
+  2. Brand-first hero: logo is the hero-primary brand signal (full-bleed photo, H1 + sub + one CTA). Brand wordmark **MAY** appear in header (atrium); that does not replace the hero logo/name signal.
   3. No cards in hero; no pill/badge clutter in first viewport.
   4. One accent; calm neutrals (vertical aesthetic).
   5. Self-hosted Cyrillic fonts from design-system (no CDN).
   6. Nonlinear section rhythm; generous whitespace.
-  7. CSS-only motion + `prefers-reduced-motion`.
-  8. Real capture assets; all slots closed; critic-fail → fix inputs/tokens and reassemble.
+  7. Motion: CSS + deferred vanilla design-system `main.js` (nav / reveal / form only) + `prefers-reduced-motion`; no framework bundles.
+  8. Prefer capture assets when present; if capture logo/photos are empty, design-system default assets copied to `design/dist/assets/` are authorized. All slots closed; critic-fail → fix inputs/tokens and reassemble.
 - **Reads**: `content.json`, `context/design-system/*`, one vertical template, capture logo/photos for brand tokens.
 - **Writes**: `leads/{id}/design/dist/` (via assemble), `design/build.json` only (previews via orchestrator `runDesignGate`).
-- **template**: name in `build.json` (e.g. `clinic-v1`).
-- **Header**: nav + CTA only; brand in hero partial, not header.
-- **Static blocks** (Copy does not fill): `steps`, `faq`, `contact-form` partials.
+- **template**: name in `build.json` (e.g. `atrium-v1`).
+- **Header**: nav + CTA; atrium wordmark (`{{brand.name}}`) allowed; logo mark remains hero-primary.
+- **Static blocks** (Copy does not fill): `approach` (steps), `promise`, contact form chrome — **no** `faq`.
 - **Responsive**: mobile + desktop; no horizontal overflow.
 - **Gate G4**: build succeeds, previews exist, 0 console errors, then Design-Critic.
 - Orchestrator owns render-preview — agent does not trigger Playwright.
@@ -57,6 +57,7 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 - Do not ignore `content.json` slot structure.
 - Do not read `audit.json` arguments — only `content.json` + design context.
 - Do not publish — Publish step is code (milestone 4).
+- Do not add FAQ partial or external stock image URLs.
 
 ## Output requirements
 
@@ -67,7 +68,7 @@ Not for `.cursor/agents/` — pipeline agent only (PRD `agents/design/`).
 
 - [ ] Built via design-system / `assembleDesign`, not free-form HTML.
 - [ ] `content.json` slots populated; no leftover `{{...}}`.
-- [ ] Client logo/photos reused when present.
-- [ ] MUST hero/accent/font/motion rules satisfied.
+- [ ] Capture logo/photos reused when present; else design-system defaults in `dist/assets/`.
+- [ ] MUST hero/accent/font/motion rules satisfied (`main.js` nav/reveal/form only).
 - [ ] Previews rendered for Design-Critic.
 - [ ] G4 code checks pass before critic.

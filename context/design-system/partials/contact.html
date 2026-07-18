@@ -1,0 +1,31 @@
+<section class="contact" id="contact">
+  <div class="contact__grid">
+    <div class="contact__copy reveal">
+      <p class="eyebrow">Консультация</p>
+      <h2>Расскажите про участок — мы скажем, что реально построить</h2>
+      <p class="prose">Короткий созвон или встреча на участке. Без презентаций на 40 слайдов — с оценкой ограничений, бюджета и сроков.</p>
+      <p class="contact__phone">
+        <a href="tel:{{contact.phone_digits}}">{{contact.phone}}</a>
+      </p>
+      <p class="contact__note">Москва и область · ежедневно 10:00–20:00</p>
+    </div>
+
+    <form class="form reveal" data-form novalidate>
+      <div class="form__field">
+        <label for="name">Имя</label>
+        <input id="name" name="name" type="text" autocomplete="name" required placeholder="Как к вам обращаться" />
+      </div>
+      <div class="form__field">
+        <label for="phone">Телефон</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" required placeholder="+7" />
+      </div>
+      <div class="form__field">
+        <label for="site">Участок или задача</label>
+        <textarea id="site" name="site" rows="4" placeholder="Посёлок, площадь, ориентир по бюджету"></textarea>
+      </div>
+      <button class="btn btn--primary btn--block" type="submit">{{contact.cta}}</button>
+      <p class="form__legal">Нажимая кнопку, вы соглашаетесь на обратный звонок. Мы не передаём контакты третьим лицам.</p>
+      <p class="form__success" data-form-success hidden>Заявка принята. Перезвоним в течение рабочего дня.</p>
+    </form>
+  </div>
+</section>

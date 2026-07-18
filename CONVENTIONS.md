@@ -119,7 +119,7 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 **Critic:** schema; `pass=true`; scores trust/modern/sellable/readable все ≥4.
 
-**Hash:** `design.hash` = `copy.hash`. Template id from vertical (default `clinic-v1`). Assembly = **code** via `assembleDesign`; Design agent = polish/retry after critic fail.
+**Hash:** `design.hash` = `copy.hash`. Template id from vertical (default `atrium-v1`). Assembly = **code** via `assembleDesign`; Design agent = polish/retry after critic fail.
 
 **Premium:** aesthetic constraints via design-system + skill `premium-website-designer` → `static-assembly.md` (не Next). Orchestrator owns assembly + Playwright previews.
 
@@ -130,28 +130,18 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 3. Запустить **Design-Critic** ([`agents/design-critic/PROMPT.md`](agents/design-critic/PROMPT.md)) → записать `leads/{id}/design/critic.json`.
 4. Повторить: `npm run pipeline -- --lead leads/{id} --stage design` → exit **0**, `design.status=done`.
 
-## Migration: renovation → clinic
+## Migration: legacy content → construction
 
-Старый контракт `content.json` с `benefits` / `social_proof` / `vertical: renovation` **невалиден** после clinic migration — это ожидаемо.
+Старый `content.json` с `vertical` ≠ `construction` или устаревшими слотами **невалиден** — это ожидаемо. Единственная ниша пайплайна: **construction**.
 
-**Рекомендуемый путь:** перезапуск Copy с актуальным промптом:
+**Путь:** перезапуск Copy с актуальным промптом:
 
 ```bash
 npm run pipeline -- --lead leads/{id} --stage copy --force
-```
-
-Агент: [`agents/copy/PROMPT.md`](agents/copy/PROMPT.md), vertical: [`context/verticals/clinic.md`](context/verticals/clinic.md).
-
-**Быстрый путь (best-effort):**
-
-```bash
-npm run migrate-content -- leads/{id}/content.json        # dry-run
-npm run migrate-content -- leads/{id}/content.json --write
-npm run pipeline -- --lead leads/{id} --stage copy        # G3
 npm run pipeline -- --lead leads/{id} --stage design --force
 ```
 
-После миграции content перезапустите design с `--force` (hash сбросится). Placeholder-слоты с `MIGRATE: review` замените через Copy re-run.
+Агент: [`agents/copy/PROMPT.md`](agents/copy/PROMPT.md), vertical: [`context/verticals/construction.md`](context/verticals/construction.md).
 
 ## Минимальный контекст между стадиями
 

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="АТРИУМ — премиум-строительство частных домов под ключ. Фиксированная смета, инженерный контроль, архитектура без компромиссов." />
+  <title>АТРИУМ — строительство частных домов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержанию</a>
+
+  <header class="site-header" data-header>
+    <div class="site-header__inner">
+      <a class="brand" href="#top" aria-label="АТРИУМ — на главную">АТРИУМ</a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="#approach">Подход</a>
+        <a href="#projects">Проекты</a>
+        <a href="#materials">Материалы</a>
+        <a href="#contact" class="nav__cta">Консультация</a>
+      </nav>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" data-nav-toggle>
+        <span class="nav-toggle__icon" aria-hidden="true">
+          <span class="nav-toggle__line"></span>
+          <span class="nav-toggle__line"></span>
+          <span class="nav-toggle__line"></span>
+        </span>
+        Меню
+      </button>
+    </div>
+    <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+      <a href="#approach">Подход</a>
+      <a href="#projects">Проекты</a>
+      <a href="#materials">Материалы</a>
+      <a href="#contact">Консультация</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-label="Главный экран">
+      <div class="hero__media">
+        <img
+          src="assets/hero-house.png"
+          alt="Современный частный дом из известняка и тёмного дерева с панорамным остеклением"
+          width="1920"
+          height="1080"
+          fetchpriority="high"
+        />
+      </div>
+      <div class="hero__veil" aria-hidden="true"></div>
+      <div class="hero__content">
+        <p class="hero__brand">АТРИУМ</p>
+        <h1 class="hero__title">Дом, в котором<br />архитектура держит слово</h1>
+        <p class="hero__lead">Проектируем и строим частные дома под ключ — с фиксированной сметой, понятным графиком и инженерной дисциплиной на площадке.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#contact">Рассчитать проект</a>
+          <a class="btn btn--ghost" href="#projects">Смотреть дома</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof" aria-label="Доказательства">
+      <div class="proof__inner">
+        <div class="proof__item reveal">
+          <span class="proof__value">12</span>
+          <span class="proof__label">лет строим частные дома</span>
+        </div>
+        <div class="proof__item reveal">
+          <span class="proof__value">86</span>
+          <span class="proof__label">завершённых объектов</span>
+        </div>
+        <div class="proof__item reveal">
+          <span class="proof__value">0</span>
+          <span class="proof__label">скрытых доплат в смете</span>
+        </div>
+        <div class="proof__item reveal">
+          <span class="proof__value">5</span>
+          <span class="proof__label">лет гарантии на конструкцию</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="approach" id="approach">
+      <div class="approach__grid">
+        <div class="approach__copy reveal">
+          <p class="eyebrow">Подход</p>
+          <h2>Строим так, будто сами будем жить рядом</h2>
+          <p class="prose">АТРИУМ — не подрядчик «под ключ» в рекламном смысле. Мы ведём объект от эскиза до сдачи: архитектура, инженерия, закупка, контроль узлов и финиш. Клиент видит одну команду и один ответственный контур.</p>
+        </div>
+        <ol class="steps reveal">
+          <li>
+            <span class="steps__num">01</span>
+            <div>
+              <h3>Бриф и участок</h3>
+              <p>Выезд, геология, инсоляция, ограничения — до того, как рисуем стены.</p>
+            </div>
+          </li>
+          <li>
+            <span class="steps__num">02</span>
+            <div>
+              <h3>Проект и смета</h3>
+              <p>Рабочая документация и фиксированная стоимость до старта работ.</p>
+            </div>
+          </li>
+          <li>
+            <span class="steps__num">03</span>
+            <div>
+              <h3>Стройка с контролем</h3>
+              <p>Еженедельный отчёт, фото узлов, приёмка скрытых работ.</p>
+            </div>
+          </li>
+          <li>
+            <span class="steps__num">04</span>
+            <div>
+              <h3>Сдача и сервис</h3>
+              <p>Чек-лист приёмки, гарантия, сопровождение первого сезона.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="projects" id="projects">
+      <div class="section-head reveal">
+        <p class="eyebrow">Проекты</p>
+        <h2>Дома, которые уже стоят</h2>
+        <p class="section-head__lead">Каждый объект — отдельная история участка, а не типовой каталог с перекраской фасада.</p>
+      </div>
+
+      <div class="projects__layout">
+        <article class="project project--wide reveal">
+          <figure class="project__media">
+            <img src="assets/project-exterior.png" alt="Двухэтажный дом с тёплым светом из окон в сумерках" width="1600" height="900" loading="lazy" />
+          </figure>
+          <div class="project__meta">
+            <h3>Дом у леса · 248 м²</h3>
+            <p>Кирпич, бетон, панорамное остекление. Срок стройки — 11 месяцев.</p>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <figure class="project__media">
+            <img src="assets/project-interior.png" alt="Гостиная с панорамными окнами и видом на берёзовый лес" width="1200" height="900" loading="lazy" />
+          </figure>
+          <div class="project__meta">
+            <h3>Интерьер · свет и воздух</h3>
+            <p>Полированный бетон, дуб, встроенная мебель под архитектуру.</p>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <figure class="project__media">
+            <img src="assets/hero-house.png" alt="Фасад дома из известняка и обугленного дерева" width="1200" height="675" loading="lazy" />
+          </figure>
+          <div class="project__meta">
+            <h3>Фасад · известняк и дерево</h3>
+            <p>Материалы, которые держат характер через десять зим.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="materials" id="materials">
+      <div class="materials__grid">
+        <figure class="materials__media reveal">
+          <img src="assets/materials-detail.png" alt="Крупный план известняка, тёмного дерева и латунной фурнитуры" width="1200" height="900" loading="lazy" />
+        </figure>
+        <div class="materials__copy reveal">
+          <p class="eyebrow">Материалы</p>
+          <h2>То, что остаётся после красивой картинки</h2>
+          <p class="prose">Мы не меняем узлы «по ходу», чтобы уложиться в чужой бюджет. Спецификация фиксируется до старта: несущие конструкции, мембраны, остекление, инженерия. Экономия — в правильной последовательности, а не в скрытых заменах.</p>
+          <ul class="checklist">
+            <li>Независимый контроль скрытых работ</li>
+            <li>Поставщики с прослеживаемой партией</li>
+            <li>Инженерия в проекте, не «на объекте»</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="promise">
+      <div class="promise__inner reveal">
+        <p class="eyebrow">Принципы</p>
+        <h2>Одна смета. Один график. Один ответственный.</h2>
+        <div class="promise__grid">
+          <article class="promise__item">
+            <h3>Смета</h3>
+            <p>Фиксируем стоимость до старта работ. Если объём меняется — вы видите это письменно до любых доплат.</p>
+          </article>
+          <article class="promise__item">
+            <h3>График</h3>
+            <p>Понятный план по этапам. Если срок сдвигается — узнаёте заранее, а не в день заливки.</p>
+          </article>
+          <article class="promise__item">
+            <h3>Ответственный</h3>
+            <p>Один контур коммуникации на объект: архитектура, инженерия и площадка не спорят между собой.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="contact__grid">
+        <div class="contact__copy reveal">
+          <p class="eyebrow">Консультация</p>
+          <h2>Расскажите про участок — мы скажем, что реально построить</h2>
+          <p class="prose">Короткий созвон или встреча на участке. Без презентаций на 40 слайдов — с оценкой ограничений, бюджета и сроков.</p>
+          <p class="contact__phone">
+            <a href="tel:+74951234567">+7 495 123-45-67</a>
+          </p>
+          <p class="contact__note">Москва и область · ежедневно 10:00–20:00</p>
+        </div>
+
+        <form class="form reveal" data-form novalidate>
+          <div class="form__field">
+            <label for="name">Имя</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="Как к вам обращаться" />
+          </div>
+          <div class="form__field">
+            <label for="phone">Телефон</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" required placeholder="+7" />
+          </div>
+          <div class="form__field">
+            <label for="site">Участок или задача</label>
+            <textarea id="site" name="site" rows="4" placeholder="Посёлок, площадь, ориентир по бюджету"></textarea>
+          </div>
+          <button class="btn btn--primary btn--block" type="submit">Запросить консультацию</button>
+          <p class="form__legal">Нажимая кнопку, вы соглашаетесь на обратный звонок. Мы не передаём контакты третьим лицам.</p>
+          <p class="form__success" data-form-success hidden>Заявка принята. Перезвоним в течение рабочего дня.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <a class="brand" href="#top">АТРИУМ</a>
+      <p>© 2026 АТРИУМ. Премиум-строительство частных домов.</p>
+    </div>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>

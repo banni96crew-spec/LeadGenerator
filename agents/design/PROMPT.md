@@ -12,13 +12,13 @@
 ## MUST
 
 1. Сборка только через design-system / assemble — без free-form CSS/layout.
-2. Header: nav + CTA only; бренд только в hero (logo или name).
-3. Hero: full-bleed capture photo (`{{photos.0}}`), eyebrow + H1 + sub + один CTA.
+2. Header: nav + CTA; atrium wordmark (`{{brand.name}}`) **разрешён**. Logo mark — hero-primary brand signal.
+3. Hero: full-bleed photo (`{{photos.0}}`), H1 + sub + один CTA; `{{hero.eyebrow}}` — в approach.
 4. Нет cards/badge-шума в первом viewport.
-5. Один accent; спокойные нейтрали (clinic aesthetic).
-6. Self-hosted кириллические шрифты из design-system (без CDN).
-7. Motion только CSS + `prefers-reduced-motion`.
-8. Реальные capture-ассеты; все слоты закрыты; steps/FAQ/form — статика шаблона.
+5. Один accent; atrium construction chrome (Подход / Проекты / Материалы / Консультация).
+6. Self-hosted кириллические шрифты из design-system (без CDN / Google Fonts).
+7. Motion: CSS + deferred vanilla `main.js` (nav / reveal / form only) + `prefers-reduced-motion`; без framework bundles.
+8. Prefer capture-ассеты; если пусто — design-system defaults в `dist/assets/` (pad ≥5). Все слоты закрыты; approach / promise / form chrome — статика; **нет** FAQ.
 
 ## Preconditions
 
@@ -31,21 +31,21 @@
 |------|---------|
 | `leads/{lead_id}/content.json` | слоты: hero, trust, symptoms, why_us, contact |
 | `leads/{lead_id}/lead.json` | name |
-| `context/design-system/` | `shell.html`, partials, `tokens.css`, `base.css` |
-| `context/verticals/clinic.md` | template id (`clinic-v1`), aesthetic |
-| `capture/logo.*`, `capture/photo-*.{jpg,png,webp}` | реальные ассеты (пути из `meta.assets`) |
+| `context/design-system/` | `shell.html`, partials, `tokens.css`, `base.css`, `main.js`, `assets/` |
+| `context/verticals/construction.md` | template id (`atrium-v1`), aesthetic |
+| `capture/logo.*`, `capture/photo-*.{jpg,png,webp}` | реальные ассеты (пути из `meta.assets`) когда есть |
 
 ## Output
 
 1. `leads/{lead_id}/design/dist/index.html` — собранный сайт (слоты заполнены, **без** оставшихся `{{...}}`).
-2. `design/dist/tokens.css`, `design/dist/base.css` — из design-system; в `index.html` инжект `--color-primary` / font из brand_tokens.
-3. `design/dist/assets/` — скопированные logo/photos (относительные пути).
+2. `design/dist/tokens.css`, `design/dist/base.css`, `design/dist/main.js` — из design-system; в `index.html` инжект `--color-primary` / font из brand_tokens.
+3. `design/dist/assets/` — capture logo/photos и/или design-system default PNGs (относительные пути).
 4. `leads/{lead_id}/design/build.json`:
 
 ```json
 {
   "schema_version": "1.0",
-  "template": "clinic-v1",
+  "template": "atrium-v1",
   "brand_tokens": {
     "primary": "#1c2b24",
     "font": "Manrope, Segoe UI, system-ui, sans-serif",
@@ -60,7 +60,8 @@
 
 - **Не** запускай render-preview — orchestrator в `--stage design`.
 - **Не** пиши `critic.json` — это Design-Critic.
-- **Не** добавляй отдельную contact-секцию — телефон в form/FAQ/mobile-bar из `sections.contact`.
+- **Не** добавляй FAQ или sticky mobile-bar — contact = phone + form chrome в `partials/contact.html`.
+- **Не** подключай внешние stock URL — только capture или `context/design-system/assets/`.
 
 ## After write
 

@@ -19,14 +19,20 @@ Shared context invariants: `30-context-files`. Assembly behavior: C `23-agent-de
 - [PRD.md](PRD.md) §7.2 (`content.json` sections, `design/build.json` `brand_tokens`).
 - Level A `00-project-overview` (static HTML demo stack).
 - C `23-agent-design` (assembly only — consumes this design-system).
+- Assembly guide: [static-assembly.md](../skills/premium-website-designer/references/static-assembly.md).
 
 ## Required behavior
 
 - **Tokens**: `primary`, `font`, spacing, radius — defaults in CSS variables or tokens file; lead-specific brand applied at build via `brand_tokens` in `build.json`, not hardcoded per client in shared files.
-- **Components**: header, hero, trust, symptoms, why_us, steps, faq, contact-form, footer — slot-ready HTML partials.
+- **Partials (atrium-v1)**:
+  - Header (outside `<main>`): `header`
+  - Body (`BODY_PARTIALS`): `hero`, `proof`, `approach`, `projects`, `materials`, `promise`, `contact`, `footer`
+  - **No** `faq`, **no** sticky mobile-bar / call bar.
+- **Shell slots**: dual markers — `<!-- SLOT:header -->` (outside `<main>`) and `<!-- SLOT:partials -->` (inside `<main>`).
 - **Layout patterns**: responsive desktop + mobile breakpoints; no horizontal overflow.
-- **Slot mapping**: LLM slots align with `content.json` sections (`hero`, `trust[]`, `symptoms[]`, `why_us[]`, `contact` for form/FAQ/mobile-bar). Static partials: `steps`, `faq`, `contact-form`.
-- **Static only**: HTML + CSS — no React, Next.js, Vue, or SPA frameworks.
+- **Slot mapping**: LLM slots align with `content.json` sections (`hero`, `trust[]` → proof, `symptoms[]` → materials, `why_us[]` → projects, `contact` → phone + form chrome). Static partials: `approach`, `promise`, contact form chrome.
+- **Static + deferred JS exception**: HTML + CSS primary; deferred vanilla `main.js` is allowed for nav scroll, reveal, and form success only — no framework bundles.
+- **Default assets**: `context/design-system/assets/` copied to `design/dist/assets/` when capture photos are missing (pad to ≥5).
 - **No pipeline logic**: no orchestrator, gates, or TypeScript runtime code in design-system.
 - **Versioning**: breaking layout/token changes — document in `context/design-system/README.md` or version file.
 
@@ -36,13 +42,15 @@ Shared context invariants: `30-context-files`. Assembly behavior: C `23-agent-de
 - «Уникальный CSS с нуля для каждого лида» → stop; C `23-agent-design` assembles from design-system + vertical.
 - «TypeScript orchestrator в design-system» → stop; pipeline code lives in `src/`.
 - «Захардкодь логотип клиента в design-system» → stop; logo path via `brand_tokens` at build time.
+- «Верни FAQ / mobile-bar» → stop; atrium-v1 has neither.
 
 ## Forbidden behavior
 
 - Do not add SPA/framework dependencies.
-- Do not embed lead-specific brand assets in shared design-system files.
+- Do not embed lead-specific brand assets in shared design-system files (shared default photography under `assets/` is OK).
 - Do not create arbitrary one-off layouts outside the component set without vertical template pairing.
 - Do not duplicate agent assembly logic — design-system is templates/tokens only.
+- Do not add FAQ or mobile-bar partials.
 
 ## Output requirements
 
@@ -51,8 +59,8 @@ Shared context invariants: `30-context-files`. Assembly behavior: C `23-agent-de
 
 ## Verification checklist
 
-- [ ] Components map to `content.json` slot names.
+- [ ] Partials match atrium-v1 list (header + BODY_PARTIALS); no faq / mobile-bar.
+- [ ] Dual `SLOT:header` / `SLOT:partials` in `shell.html`.
 - [ ] Responsive CSS for mobile and desktop.
-- [ ] No framework deps in design-system.
-- [ ] No lead-specific assets in shared files.
+- [ ] No framework deps; `main.js` limited to nav/reveal/form.
 - [ ] Compatible with vertical templates (`32-vertical-templates`).

@@ -13,20 +13,27 @@ import { resolveBrandTokens, type BrandTokens } from "../../lib/brandTokens.js";
 import { REPO_ROOT } from "../../lib/paths.js";
 import { renderMustache } from "./mustache.js";
 
-const DEFAULT_TEMPLATE = "clinic-v1";
-const DESIGN_SYSTEM_DIR = path.join(REPO_ROOT, "context", "design-system");
-
-const PARTIALS = [
-  "header",
+const DEFAULT_TEMPLATE = "atrium-v1";
+const HEADER_PARTIAL = "header";
+const BODY_PARTIALS = [
   "hero",
-  "trust",
-  "symptoms",
-  "why_us",
-  "steps",
-  "faq",
-  "contact-form",
+  "proof",
+  "approach",
+  "projects",
+  "materials",
+  "promise",
+  "contact",
   "footer",
 ] as const;
+const DEFAULT_PHOTO_RELS = [
+  "assets/hero-house.png",
+  "assets/project-exterior.png",
+  "assets/project-interior.png",
+  "assets/hero-house.png", // reuse for project3
+  "assets/materials-detail.png",
+] as const;
+
+const DESIGN_SYSTEM_DIR = path.join(REPO_ROOT, "context", "design-system");
 
 export type AssembleDesignResult = {
   template: string;
@@ -77,7 +84,7 @@ function resolveTemplateId(vertical: string): string {
     if (match?.[1]?.trim()) return match[1].trim();
   }
 
-  return `${trimmed}-v1`;
+  return DEFAULT_TEMPLATE;
 }
 
 function readCaptureAssetPaths(leadDir: string): {
@@ -103,6 +110,21 @@ function readCaptureAssetPaths(leadDir: string): {
   }
 }
 
+/** Copy all files under srcDir into destDir (recursive). Prefer per-file copy on Windows. */
+function copyDirFiles(srcDir: string, destDir: string): void {
+  if (!existsSync(srcDir)) return;
+  mkdirSync(destDir, { recursive: true });
+  for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+    const src = path.join(srcDir, entry.name);
+    const dest = path.join(destDir, entry.name);
+    if (entry.isDirectory()) {
+      copyDirFiles(src, dest);
+    } else if (entry.isFile()) {
+      copyFileSync(src, dest);
+    }
+  }
+}
+
 function copyDesignSystem(distDir: string): void {
   if (!existsSync(DESIGN_SYSTEM_DIR)) {
     throw new Error(`design-system missing: ${DESIGN_SYSTEM_DIR}`);
@@ -111,7 +133,8 @@ function copyDesignSystem(distDir: string): void {
   const shellSrc = path.join(DESIGN_SYSTEM_DIR, "shell.html");
   const tokensSrc = path.join(DESIGN_SYSTEM_DIR, "tokens.css");
   const baseSrc = path.join(DESIGN_SYSTEM_DIR, "base.css");
-  for (const src of [shellSrc, tokensSrc, baseSrc]) {
+  const mainJsSrc = path.join(DESIGN_SYSTEM_DIR, "main.js");
+  for (const src of [shellSrc, tokensSrc, baseSrc, mainJsSrc]) {
     if (!existsSync(src)) {
       throw new Error(`design-system file missing: ${src}`);
     }
@@ -119,20 +142,16 @@ function copyDesignSystem(distDir: string): void {
 
   copyFileSync(tokensSrc, path.join(distDir, "tokens.css"));
   copyFileSync(baseSrc, path.join(distDir, "base.css"));
+  copyFileSync(mainJsSrc, path.join(distDir, "main.js"));
 
-  const fontsSrc = path.join(DESIGN_SYSTEM_DIR, "fonts");
-  if (existsSync(fontsSrc)) {
-    const fontsDest = path.join(distDir, "fonts");
-    mkdirSync(fontsDest, { recursive: true });
-    for (const entry of readdirSync(fontsSrc, { withFileTypes: true })) {
-      if (!entry.isFile()) continue;
-      // Prefer per-file copy: recursive cpSync has crashed on some Windows paths.
-      copyFileSync(
-        path.join(fontsSrc, entry.name),
-        path.join(fontsDest, entry.name)
-      );
-    }
-  }
+  copyDirFiles(
+    path.join(DESIGN_SYSTEM_DIR, "fonts"),
+    path.join(distDir, "fonts")
+  );
+  copyDirFiles(
+    path.join(DESIGN_SYSTEM_DIR, "assets"),
+    path.join(distDir, "assets")
+  );
 }
 
 function copyCaptureAssets(
@@ -168,6 +187,18 @@ function copyCaptureAssets(
   return copiedPhotoRels;
 }
 
+/** Pad capture photos to ≥5 non-empty srcs using design-system defaults. */
+function padPhotoSrcs(copiedPhotoRels: string[]): string[] {
+  const photos = copiedPhotoRels
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  for (const fallback of DEFAULT_PHOTO_RELS) {
+    if (photos.length >= 5) break;
+    photos.push(fallback);
+  }
+  return photos;
+}
+
 function buildView(opts: {
   content: ContentJson;
   brandName: string;
@@ -189,7 +220,7 @@ function buildView(opts: {
     hero: opts.content.sections.hero,
     trust: opts.content.sections.trust,
     symptoms: opts.content.sections.symptoms,
-    why_us: opts.content.sections.why_us,
+    why_us: opts.content.sections.why_us.slice(0, 3),
     contact: {
       phone: contact.phone,
       cta: contact.cta,
@@ -199,22 +230,35 @@ function buildView(opts: {
   };
 }
 
+function loadPartial(name: string): string {
+  const partialPath = path.join(
+    DESIGN_SYSTEM_DIR,
+    "partials",
+    `${name}.html`
+  );
+  if (!existsSync(partialPath)) {
+    throw new Error(`design-system partial missing: ${partialPath}`);
+  }
+  return readFileSync(partialPath, "utf8").trim();
+}
+
 function loadPageTemplate(): string {
   const shellPath = path.join(DESIGN_SYSTEM_DIR, "shell.html");
   const shell = readFileSync(shellPath, "utf8");
-  const partialsDir = path.join(DESIGN_SYSTEM_DIR, "partials");
-  const body = PARTIALS.map((name) => {
-    const partialPath = path.join(partialsDir, `${name}.html`);
-    if (!existsSync(partialPath)) {
-      throw new Error(`design-system partial missing: ${partialPath}`);
-    }
-    return readFileSync(partialPath, "utf8").trim();
-  }).join("\n\n");
-  const marker = "<!-- SLOT:partials -->";
-  if (!shell.includes(marker)) {
-    throw new Error(`shell.html missing marker: ${marker}`);
+  const headerMarker = "<!-- SLOT:header -->";
+  const partialsMarker = "<!-- SLOT:partials -->";
+  if (!shell.includes(headerMarker)) {
+    throw new Error(`shell.html missing marker: ${headerMarker}`);
   }
-  return shell.replace(marker, body);
+  if (!shell.includes(partialsMarker)) {
+    throw new Error(`shell.html missing marker: ${partialsMarker}`);
+  }
+
+  const header = loadPartial(HEADER_PARTIAL);
+  const body = BODY_PARTIALS.map((name) => loadPartial(name)).join("\n\n");
+  return shell
+    .replace(headerMarker, header)
+    .replace(partialsMarker, body);
 }
 
 /**
@@ -247,18 +291,27 @@ export async function assembleDesign(
   const distDir = path.join(designDir, "dist");
   const assetsDir = path.join(distDir, "assets");
 
+  // 1. Wipe dist
   if (existsSync(distDir)) {
     rmSync(distDir, { recursive: true, force: true });
   }
   mkdirSync(distDir, { recursive: true });
 
+  // 2. Copy design-system defaults onto disk
   copyDesignSystem(distDir);
-  const photoSrcs = copyCaptureAssets(leadDir, assetsDir, brand);
 
-  const shell = loadPageTemplate();
+  // 3. Overlay capture logo/photos into dist/assets/
+  const copiedPhotos = copyCaptureAssets(leadDir, assetsDir, brand);
+
+  // 4. Build Mustache view (pad photos, slice why_us)
+  const photoSrcs = padPhotoSrcs(copiedPhotos);
   const view = buildView({ content, brandName, brand, photoSrcs });
+
+  // 5. Mustache render (SLOT:header + SLOT:partials)
+  const shell = loadPageTemplate();
   const html = renderMustache(shell, view);
 
+  // 6. Write index.html + build.json
   const indexRel = "design/dist/index.html";
   const indexAbs = path.join(leadDir, indexRel);
   writeFileSync(indexAbs, html, "utf8");

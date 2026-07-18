@@ -330,18 +330,18 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
       contentPath,
       JSON.stringify({
         schema_version: "1.0",
-        vertical: "clinic",
+        vertical: "construction",
         sections: {
           hero: {
-            eyebrow: "Частная клиника",
-            headline: "Приём терапевта",
-            subheadline: "Диагностика за один визит",
-            cta: "Записаться",
+            eyebrow: "Подход",
+            headline: "Дом под ключ",
+            subheadline: "Фиксированная смета и контроль на площадке",
+            cta: "Рассчитать проект",
           },
           trust: [
-            { title: "Лицензия", text: "Медицинская деятельность" },
-            { title: "Запись", text: "На время" },
-            { title: "Приём", text: "От 30 минут" },
+            { title: "Фикс", text: "Смета до старта" },
+            { title: "Контроль", text: "Приёмка узлов" },
+            { title: "Гарантия", text: "На конструкцию" },
           ],
           symptoms: [
             { pain: "Боль 1", solve: "Решение 1" },
@@ -354,9 +354,9 @@ if (existsSync(path.join(leadDir("domeo"), "state.json"))) {
             { title: "Плюс 2", text: "Текст 2" },
             { title: "Плюс 3", text: "Текст 3" },
           ],
-          contact: { phone: "+7 (495) 000-00-00", cta: "Оставить заявку" },
+          contact: { phone: "+7 (495) 000-00-00", cta: "Запросить консультацию" },
         },
-        reuse_facts: ["Частная клиника", "Москва"],
+        reuse_facts: ["Строительство частных домов", "Москва"],
       })
     );
   } else {

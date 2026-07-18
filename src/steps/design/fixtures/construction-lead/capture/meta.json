@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "url": "https://atrium-dom.example",
+  "http_status": 200,
+  "screenshots": {
+    "desktop": "capture/desktop.png",
+    "mobile": "capture/mobile.png"
+  },
+  "extracted_text": "capture/text.txt",
+  "assets": {
+    "photos": []
+  },
+  "signals": {
+    "https": true,
+    "mobile_friendly": true,
+    "has_cta": true,
+    "has_form": false
+  }
+}

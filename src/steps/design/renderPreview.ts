@@ -126,6 +126,10 @@ export async function renderPreview(leadDir: string): Promise<RenderPreviewResul
       waitUntil: "load",
       timeout: 45_000,
     });
+    await desktopPage.evaluate(() => {
+      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-in"));
+    });
+    // Force reveal-in so full-page critic previews are not blank mid-page.
     await desktopPage.screenshot({ path: desktopAbs, fullPage: true });
 
     const mobilePage = await mobile.newPage();
@@ -142,6 +146,9 @@ export async function renderPreview(leadDir: string): Promise<RenderPreviewResul
     overflowMobile = await mobilePage.evaluate(() => {
       const doc = document.documentElement;
       return doc.scrollWidth > doc.clientWidth + 1;
+    });
+    await mobilePage.evaluate(() => {
+      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-in"));
     });
     await mobilePage.screenshot({ path: mobileAbs, fullPage: true });
 

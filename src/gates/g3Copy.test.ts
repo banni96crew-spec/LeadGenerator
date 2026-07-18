@@ -8,18 +8,18 @@ import { runGateG3 } from "./g3Copy.js";
 function validContent(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     schema_version: "1.0",
-    vertical: "clinic",
+    vertical: "construction",
     sections: {
       hero: {
-        eyebrow: "Частная клиника",
-        headline: "Приём терапевта уже завтра",
-        subheadline: "Диагностика за один визит",
-        cta: "Записаться",
+        eyebrow: "Подход",
+        headline: "Дом под ключ с фиксированной сметой",
+        subheadline: "Архитектура, инженерия и контроль на площадке",
+        cta: "Рассчитать проект",
       },
       trust: [
-        { title: "Лицензия", text: "Медицинская деятельность" },
-        { title: "Запись", text: "На конкретное время" },
-        { title: "Приём", text: "От 30 минут" },
+        { title: "Фикс", text: "Смета до старта работ" },
+        { title: "Контроль", text: "Приёмка скрытых узлов" },
+        { title: "Гарантия", text: "На несущую конструкцию" },
       ],
       symptoms: [
         { pain: "Боль 1", solve: "Решение 1" },
@@ -34,10 +34,10 @@ function validContent(overrides: Record<string, unknown> = {}): Record<string, u
       ],
       contact: {
         phone: "+7 (495) 000-00-00",
-        cta: "Оставить заявку",
+        cta: "Запросить консультацию",
       },
     },
-    reuse_facts: ["Частная клиника", "Москва"],
+    reuse_facts: ["Строительство частных домов", "Москва"],
     ...overrides,
   };
 }
@@ -60,7 +60,7 @@ describe("runGateG3", () => {
     const data = validContent();
     const sections = data.sections as Record<string, unknown>;
     sections.hero = {
-      eyebrow: "Клиника",
+      eyebrow: "Подход",
       headline: "Заголовок",
       subheadline: "Подзаголовок",
       cta: " ",

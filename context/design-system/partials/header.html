@@ -1,11 +1,25 @@
-<header class="site-header">
+<header class="site-header" data-header>
   <div class="site-header__inner">
-    <nav class="site-header__nav" aria-label="Основная навигация">
-      <a href="#symptoms">Симптомы</a>
-      <a href="#why">Почему мы</a>
-      <a href="#faq">Вопросы</a>
-      <a href="#contact">Контакты</a>
+    <a class="brand" href="#top" aria-label="{{brand.name}} — на главную">{{brand.name}}</a>
+    <nav class="nav" aria-label="Основная навигация">
+      <a href="#approach">Подход</a>
+      <a href="#projects">Проекты</a>
+      <a href="#materials">Материалы</a>
+      <a href="#contact" class="nav__cta">Консультация</a>
     </nav>
-    <a class="btn btn--primary btn--compact site-header__cta" href="#contact">{{hero.cta}}</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" data-nav-toggle>
+      <span class="nav-toggle__icon" aria-hidden="true">
+        <span class="nav-toggle__line"></span>
+        <span class="nav-toggle__line"></span>
+        <span class="nav-toggle__line"></span>
+      </span>
+      Меню
+    </button>
+  </div>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="#approach">Подход</a>
+    <a href="#projects">Проекты</a>
+    <a href="#materials">Материалы</a>
+    <a href="#contact">Консультация</a>
   </div>
 </header>

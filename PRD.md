@@ -229,7 +229,7 @@ LLM-QA : Design-Critic (мини-агент только на финальном
 
 **`content.json`** (выход Copy → вход Design):
 ```jsonc
-{ "schema_version": "1.0", "vertical": "clinic",
+{ "schema_version": "1.0", "vertical": "construction",
   "sections": {
     "hero": { "eyebrow": "...", "headline": "...", "subheadline": "...", "cta": "..." },
     "trust": [ { "title": "...", "text": "..." } ],
@@ -242,7 +242,7 @@ LLM-QA : Design-Critic (мини-агент только на финальном
 
 **`design/build.json`**:
 ```jsonc
-{ "schema_version": "1.0", "template": "clinic-v1",
+{ "schema_version": "1.0", "template": "atrium-v1",
   "brand_tokens": { "primary": "#...", "font": "...", "logo": "capture/logo.png" },
   "build_dir": "design/dist", "screens": ["design/preview-desktop.png", "design/preview-mobile.png"] }
 ```

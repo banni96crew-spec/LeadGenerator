@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "lead_id": "construction-lead",
+  "name": "Атриум Дом",
+  "site": "https://atrium-dom.example",
+  "category": "строительство частных домов",
+  "geo": "Москва",
+  "phone": "+7 (495) 123-45-67",
+  "source": "fixture"
+}
