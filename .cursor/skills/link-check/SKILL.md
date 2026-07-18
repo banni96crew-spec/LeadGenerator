@@ -14,7 +14,7 @@ Gate G6 **code checks** — URL resolution and offer field presence.
 - Debugging G6 fail — broken demo, portfolio, or audit_pdf link.
 - User asks to verify all links in offer resolve before send.
 
-**Not for:** Lighthouse / console smoke on demo (`smoke-test-url`). Not for writing offer copy (`25-agent-offer` / Offer agent). Not for G6 LLM tone-check. Not for generating `audit.pdf` (`generate-audit-pdf`, S14).
+**Not for:** Lighthouse / console smoke on demo (`smoke-test-url`). Not for writing offer copy (`25-agent-offer` / Offer agent). Not for G6 tone lint (`offerToneLint` in gate). Not for generating `audit.pdf` (`generate-audit-pdf`, S14).
 
 ## Related rules
 
@@ -101,11 +101,11 @@ On fail: include actual length in error.
 
 Read-only — do not edit `offer.json` to fix links.
 
-### 6. G6 LLM partial (out of scope)
+### 6. G6 tone (M5 status)
 
-After code checks pass, G6 may run **tone-check** LLM per `03-pipeline-gates`.
+PRD §14 allows LLM tone-check. **M5 stand-in:** code lint in `src/gates/offerToneLint.ts` (called from `runGateG6`), same class as G2 `lintAuditClientText`. No LLM API in Node for tone.
 
-This skill does **not** implement tone-check — Offer agent or thin wrapper only.
+This skill does **not** implement tone — only link/field code checks via `checkOfferLinks`.
 
 ### 7. Orchestrator integration
 
@@ -120,17 +120,19 @@ This skill does **not** implement tone-check — Offer agent or thin wrapper onl
 | `offer.json`, `deploy.json`, `context/portfolio.json` | `GateResult` `gate: 'G6'` |
 | Optional `offer/audit.pdf` | File existence or URL 200 |
 
-**Code owner (planned):** `src/gates/g6Offer.ts` / `src/lib/linkCheck.ts`  
+**Code owner (implemented M5):** `src/gates/g6Offer.ts` (`runGateG6`), `src/lib/linkCheck.ts` (`checkOfferLinks`)  
 **Stage:** Offer → Gate G6
 
 ## Verification
 
 | Check | Status |
 |-------|--------|
-| demo link from deploy.json only | not run |
-| portfolio link 200 | not run |
-| placeholder URLs rejected | not run |
-| `why_this_company` enforced | not run |
+| demo link from deploy.json only | implemented — `linkCheck.test.ts`, `g6Offer.test.ts` (mock fetch) |
+| portfolio link 200 | implemented — `checkOfferLinks` + G6 tests (mock HTTP) |
+| placeholder URLs rejected | implemented — `isPlaceholderUrl` / `linkCheck.test.ts` |
+| `why_this_company` enforced | implemented — `runGateG6` + `g6Offer.test.ts` |
+| message length ≤1500 | implemented — schema `maxLength` + G6 |
+| local `offer/audit.pdf` when linked | implemented — existsSync path in `checkOfferLinks` |
 | `quick_validate.py` | run after write |
 
 ## Test prompts
@@ -143,7 +145,7 @@ This skill does **not** implement tone-check — Offer agent or thin wrapper onl
 
 - Do not use placeholder or invented URLs (`25-agent-offer`, EXAMPLES).
 - Do not skip link check because message looks ready.
-- Do not implement G6 tone-check LLM in this skill.
+- Do not implement G6 tone-check LLM in this skill (M5 tone = `offerToneLint` in gate, not here).
 - Do not generate `audit.pdf` — `generate-audit-pdf` (S14).
 - Do not run Lighthouse/console smoke — `smoke-test-url` (S10).
 - Do not mutate `offer.json` inside link-check — return errors to orchestrator.

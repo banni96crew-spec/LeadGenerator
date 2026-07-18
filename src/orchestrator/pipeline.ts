@@ -7,6 +7,9 @@ import { runGateG2 } from "../gates/g2Audit.js";
 import { runGateG3 } from "../gates/g3Copy.js";
 import { runGateG4 } from "../gates/g4Design.js";
 import { runGateG5 } from "../gates/g5Publish.js";
+import { runGateG6 } from "../gates/g6Offer.js";
+import { generateAuditPdf } from "../lib/auditPdf.js";
+import { deployArtifactIsValid } from "../lib/deployArtifacts.js";
 import {
   leadFile,
   normalizeSiteUrl,
@@ -40,7 +43,9 @@ const G3_MAX_ATTEMPTS = 2;
 const G4_MAX_ATTEMPTS = 2;
 /** Any failure in deploy OR smoke OR G5 → full cycle retry */
 const PUBLISH_MAX_ATTEMPTS = 2;
-/** A1 seam: agent artifact missing (audit/content/design/critic) */
+/** G6 offer gate-only invocations (A1: agent fixes offer between CLI re-runs) */
+const OFFER_MAX_ATTEMPTS = 2;
+/** A1 seam: agent artifact missing (audit/content/design/critic/offer) */
 const EXIT_AWAITING = 3;
 
 export type PipelineOptions = {
@@ -142,9 +147,47 @@ function clearPublishArtifact(leadDir: string): void {
   }
 }
 
+function clearOfferTextArtifacts(leadDir: string): void {
+  for (const rel of ["offer/offer.json", "offer/offer.md"]) {
+    const abs = path.join(leadDir, rel);
+    if (existsSync(abs)) {
+      try {
+        unlinkSync(abs);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+/** Resets offer to pending; clears hash/artifact/error; may delete offer.json + offer.md. */
+export function invalidateOffer(state: PipelineState, leadDir?: string): void {
+  if (leadDir) clearOfferTextArtifacts(leadDir);
+  resetStagePending(state, "offer");
+}
+
 export function invalidatePublish(state: PipelineState, leadDir?: string): void {
   if (leadDir) clearPublishArtifact(leadDir);
   resetStagePending(state, "publish");
+  invalidateOffer(state, leadDir);
+}
+
+/** When publish.hash diverges from offer.hash, reset offer so message is not stale. */
+export function syncOfferWithPublishHash(
+  state: PipelineState,
+  leadDir?: string
+): void {
+  const publishHash = state.stages.publish.hash;
+  const offerStage = state.stages.offer;
+  if (
+    !publishHash ||
+    !offerStage.hash ||
+    offerStage.hash === publishHash ||
+    (offerStage.status !== "done" && offerStage.status !== "failed")
+  ) {
+    return;
+  }
+  invalidateOffer(state, leadDir);
 }
 
 /** Resets design and cascades to publish (clears local deploy.json when leadDir set). */
@@ -1030,6 +1073,185 @@ export async function runPublishGate(
   return { state, exitCode: 1 };
 }
 
+/** Optional seams for unit tests (defaults to real PDF / G6). */
+export type OfferGateDeps = {
+  generateAuditPdf?: typeof generateAuditPdf;
+  runGateG6?: typeof runGateG6;
+};
+
+/**
+ * Offer + G6 (A1): PDF → await offer.json AND offer.md → runGateG6.
+ * No inner while-loop (unlike publish); retries via CLI re-run up to OFFER_MAX_ATTEMPTS.
+ */
+export async function runOfferGate(
+  lead: Lead,
+  leadDir: string,
+  state: PipelineState,
+  force: boolean,
+  deps: OfferGateDeps = {}
+): Promise<{ state: PipelineState; exitCode: number }> {
+  const stageName: StageName = "offer";
+  const offerJsonPath = path.join(leadDir, "offer", "offer.json");
+  const offerMdPath = path.join(leadDir, "offer", "offer.md");
+  const pdfFn = deps.generateAuditPdf ?? generateAuditPdf;
+  const gateFn = deps.runGateG6 ?? runGateG6;
+
+  if (state.stages.publish.status !== "done") {
+    const error = `lead_id=${lead.lead_id} stage=offer reason=publish not done`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "failed",
+      message: error,
+    });
+    return { state, exitCode: 1 };
+  }
+
+  if (!deployArtifactIsValid({ lead_id: lead.lead_id, leadDir })) {
+    const error = `lead_id=${lead.lead_id} stage=offer reason=deploy artifact invalid`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "failed",
+      message: error,
+    });
+    return { state, exitCode: 1 };
+  }
+
+  syncOfferWithPublishHash(state, leadDir);
+
+  if (state.stages[stageName].status === "running" && !force) {
+    updateStage(state, stageName, { status: "pending" });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "reset",
+      cost: 0,
+      message: "stale running reset to pending",
+    });
+  }
+
+  const inputHash = state.stages.publish.hash;
+  if (!inputHash) {
+    const error = `lead_id=${lead.lead_id} stage=offer reason=publish hash missing`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    return { state, exitCode: 1 };
+  }
+
+  if (
+    shouldSkip(
+      state.stages[stageName],
+      inputHash,
+      force,
+      lead.lead_id,
+      leadDir,
+      stageName
+    )
+  ) {
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "skipped",
+      cost: 0,
+      message: "idempotent skip",
+    });
+    return { state, exitCode: 0 };
+  }
+
+  try {
+    await pdfFn(leadDir);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = `lead_id=${lead.lead_id} stage=offer reason=audit.pdf generation failed: ${message}`;
+    updateStage(state, stageName, { status: "failed", error });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "failed",
+      message: error,
+    });
+    return { state, exitCode: 1 };
+  }
+
+  const offerJsonOk =
+    existsSync(offerJsonPath) &&
+    readFileSync(offerJsonPath, "utf8").trim().length > 0;
+  const offerMdOk =
+    existsSync(offerMdPath) &&
+    readFileSync(offerMdPath, "utf8").trim().length > 0;
+
+  if (!offerJsonOk || !offerMdOk) {
+    updateStage(state, stageName, { status: "pending", error: undefined });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "awaiting",
+      cost: 0,
+      message: `awaiting offer/offer.json and offer/offer.md (agents/offer/PROMPT.md) — next: Offer agent → npm run pipeline -- --lead leads/${lead.lead_id} --stage offer`,
+    });
+    return { state, exitCode: EXIT_AWAITING };
+  }
+
+  const started = Date.now();
+  const attempts = (state.stages[stageName].attempts ?? 0) + 1;
+  updateStage(state, stageName, {
+    status: "running",
+    attempts,
+    error: undefined,
+  });
+  saveState(state);
+
+  const gate = await gateFn({ lead_id: lead.lead_id, leadDir });
+
+  if (gate.pass) {
+    updateStage(state, stageName, {
+      status: "done",
+      artifact: "offer/offer.json",
+      hash: inputHash,
+      cost: 0,
+      error: undefined,
+    });
+    saveState(state);
+    logStage({
+      lead_id: lead.lead_id,
+      stage: stageName,
+      status: "done",
+      ms: Date.now() - started,
+      cost: 0,
+    });
+    return { state, exitCode: 0 };
+  }
+
+  const lastError = formatGateErrors(
+    lead.lead_id,
+    "offer",
+    "G6",
+    gate.errors
+  );
+  updateStage(state, stageName, {
+    status: "failed",
+    attempts,
+    error: lastError,
+  });
+  saveState(state);
+  logStage({
+    lead_id: lead.lead_id,
+    stage: stageName,
+    status: "gate_fail",
+    ms: Date.now() - started,
+    message: lastError,
+  });
+  return { state, exitCode: attempts >= OFFER_MAX_ATTEMPTS ? 1 : 1 };
+}
+
 export async function runPipeline(
   options: PipelineOptions
 ): Promise<{ state: PipelineState; exitCode: number }> {
@@ -1086,9 +1308,11 @@ export async function runPipeline(
       return runDesignGate(lead, leadDir, state, force);
     case "publish":
       return runPublishGate(lead, leadDir, state, force);
+    case "offer":
+      return runOfferGate(lead, leadDir, state, force);
     default:
       throw new Error(
-        `M4 milestone implements capture|audit|copy|design|publish (got ${targetStage})`
+        `M5 milestone implements capture|audit|copy|design|publish|offer (got ${targetStage})`
       );
   }
 }

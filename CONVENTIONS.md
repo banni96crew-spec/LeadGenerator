@@ -159,6 +159,41 @@ lead_id=domeo stage=capture gate=G1 artifact=capture/desktop.png size=100 requir
 
 **CLI:** `npm run pipeline -- --lead leads/{id} --stage publish` (live example: `g4-verify-construction`).
 
+## Gate G6 (Offer, M5)
+
+После стадии Offer. Precondition: `publish.status === done` и `deployArtifactIsValid` (G5 pass).
+
+**Flow (A1, как audit/copy — без inner while-loop):**
+1. `syncOfferWithPublishHash` — если `offer.hash` ≠ `publish.hash`, `invalidateOffer`
+2. Idempotent skip: `shouldSkip("offer")` + **sync** `offerArtifactIsValid` (см. ниже) → exit `0`, **без** fetch / `runGateG6`
+3. Иначе `generateAuditPdf` → `offer/audit.pdf`
+4. Если нет непустых `offer/offer.json` **или** `offer/offer.md` → exit **`3`** (`EXIT_AWAITING`) — Offer agent пишет оба файла
+5. `await runGateG6` → при pass: `offer.status=done`, `artifact: offer/offer.json`, `cost: 0`, `hash === publish.hash`
+
+**Code checks (G6):**
+- `offer.json` schema-valid (`schemas/offer.schema.json`)
+- `offer/offer.md` существует и non-empty
+- `why_this_company` non-empty
+- `message.length <= 1500`
+- links: `demo` ≡ `deploy.json.demo_url`; `portfolio` ∈ `context/portfolio.json` cases; `audit_pdf` → local `offer/audit.pdf` (exists)
+- HTTP 200 for demo + portfolio via `checkOfferLinks` (`src/lib/linkCheck.ts`, HEAD→GET, ~10s)
+- tone: **code lint** `offerToneLint.ts` (G2-style) — **stand-in** для PRD §14 LLM tone-check; LLM API в Node на M5 нет. PRD не править.
+
+**Network vs G5:** G5 — smoke пишет `deploy.json.checks`, gate только читает (ноль сети в gate). G6 — **документированное исключение** в [`13-gates-code.mdc`](.cursor/rules/13-gates-code.mdc): сеть допускается через `checkOfferLinks` из `runGateG6`. Playwright / Lighthouse в gates по-прежнему запрещены. G1–G5 без сети в gate.
+
+**Idempotency / skip:** `offer.hash` = `publish.hash`. `offerArtifactIsValid` — **sync, local only**: schema-valid `offer.json`, non-empty `offer.md`, `offer/audit.pdf` exists, link field consistency (demo/portfolio/audit_pdf). **No fetch, no `runGateG6`.** Network только на non-skip path внутри G6.
+
+**Cascade:** `invalidatePublish` → `invalidateOffer` (reset offer pending; clear hash/artifact/error; may delete `offer/offer.json` + `offer.md`; PDF regenerates next run).
+
+**Retry:** `OFFER_MAX_ATTEMPTS = 2` — **без** inner while-loop в `runOfferGate` (в отличие от Publish). Повтор = повторный CLI / `--stage offer` после правки агентом; после 2 неудачных G6 → `offer.status=failed`.
+
+**A1 closing after exit 3:**
+1. `npm run pipeline -- --lead leads/{id} --stage offer` → exit **3** = awaiting artifacts (не ошибка кода).
+2. Offer agent: [`agents/offer/PROMPT.md`](agents/offer/PROMPT.md) → оба `offer/offer.json` и `offer/offer.md`.
+3. Повторить: `npm run pipeline -- --lead leads/{id} --stage offer` → G6 → exit **0**, `offer.status=done`.
+
+**CLI:** `npm run pipeline -- --lead leads/{id} --stage offer` (или `npm run offer -- --lead …`). Live example: `g4-verify-construction`.
+
 ## Migration: legacy content → construction
 
 Старый `content.json` с `vertical` ≠ `construction` или устаревшими слотами **невалиден** — это ожидаемо. Единственная ниша пайплайна: **construction**.

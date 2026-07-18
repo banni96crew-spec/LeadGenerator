@@ -9,6 +9,7 @@
     "copy": "tsx src/orchestrator/index.ts -- --stage copy",
     "design": "tsx src/orchestrator/index.ts -- --stage design",
     "publish": "tsx src/orchestrator/index.ts -- --stage publish",
+    "offer": "tsx src/orchestrator/index.ts -- --stage offer",
     "validate-schemas": "tsx src/scripts/validate-schemas.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "test": "tsx --test src/**/*.test.ts",
@@ -20,11 +21,13 @@
     "chrome-launcher": "^1.1.2",
     "image-size": "^1.2.0",
     "lighthouse": "^12.6.0",
+    "pdfkit": "0.19.1",
     "playwright": "^1.49.0",
     "wrangler": "^4.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@types/pdfkit": "^0.17.6",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }

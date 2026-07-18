@@ -193,6 +193,22 @@ const examples: Array<{ name: string; data: unknown }> = [
       },
     },
   },
+  {
+    name: "offer",
+    data: {
+      schema_version: "1.0",
+      message:
+        "Добрый день! Подготовили короткий разбор сайта и демо-страницу с вашими услугами — удобно показать команде.",
+      usp: ["Фиксированная смета до старта", "Еженедельный отчёт по объекту"],
+      why_this_company:
+        "У вас сильная экспертиза в строительстве, но на сайте сложно сразу увидеть следующий шаг для клиента.",
+      links: {
+        demo: "https://domeo.leadgenerator-demos.pages.dev",
+        portfolio: "https://g4-verify-construction.leadgenerator-7sp.pages.dev",
+        audit_pdf: "offer/audit.pdf",
+      },
+    },
+  },
 ];
 
 function schemaNameForFixture(name: string): string {

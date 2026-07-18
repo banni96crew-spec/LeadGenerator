@@ -26,9 +26,8 @@ Render `audit.json` into printable client PDF at `leads/{id}/offer/audit.pdf`.
 
 - `leads/{lead_id}/audit.json` exists and passed G2.
 - `leads/{lead_id}/offer/` directory (create if missing).
-- PDF generator library (planned): e.g. `pdfkit`, `@react-pdf/renderer` (static layout), or HTML→PDF — **no** runtime `context/` generation.
-- `src/` may be absent — spec-first.
-- Milestone 5 — may stub until Offer milestone.
+- PDF generator: pinned **`pdfkit`** (+ `@types/pdfkit`) via `src/lib/auditPdf.ts` — **no** runtime `context/` generation.
+- Cyrillic: `auditPdf.ts` registers `assets/fonts/DejaVuSans.ttf` with pdfkit.
 
 ## Procedure
 
@@ -104,16 +103,17 @@ Default: **audit.json only**. `research.json` PDF variant is out of scope unless
 | `audit.json` | `leads/{id}/offer/audit.pdf` |
 | `lead.json` (name) | PDF title/header |
 
-**Code owner (planned):** `src/steps/offer/pdf.ts` or `src/lib/auditPdf.ts`  
-**Stage:** Audit (optional post-G2) or Offer (matrix: S14 → Offer)
+**Code owner (implemented M5):** `src/lib/auditPdf.ts` (`generateAuditPdf`) — called from `runOfferGate` before A1 await  
+**Stage:** Offer (before G6); input `audit.json` only
 
 ## Verification
 
 | Check | Status |
 |-------|--------|
-| PDF contains only audit.json facts | not run |
-| `offer/audit.pdf` exists after run | not run |
-| `link-check` passes on audit_pdf when linked | not run |
+| PDF contains only audit.json facts | implemented — `generateAuditPdf` reads `audit.json` (+ `lead.json` name); unit coverage in `auditPdf.test.ts` |
+| `offer/audit.pdf` exists after run | implemented — writes relative `offer/audit.pdf`, size > 0 asserted in tests |
+| `link-check` passes on audit_pdf when linked | implemented — local existsSync in `checkOfferLinks` / G6 (no HTTP host required for local path) |
+| Cyrillic / pdfkit wired | implemented — pdfkit + DejaVu font path in `auditPdf.ts` |
 | `quick_validate.py` | run after write |
 
 ## Test prompts

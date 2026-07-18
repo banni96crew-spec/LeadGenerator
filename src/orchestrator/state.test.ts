@@ -375,6 +375,140 @@ describe("shouldSkip publish", () => {
   });
 });
 
+describe("shouldSkip offer", () => {
+  const DEMO = "https://g4-verify-construction.leadgenerator-7sp.pages.dev";
+
+  function writeValidOffer(leadDir: string): void {
+    writePassingDeploy(leadDir);
+    // Override demo_url to match portfolio allowlist URL used below
+    writeFileSync(
+      path.join(leadDir, "deploy.json"),
+      JSON.stringify(
+        {
+          schema_version: "1.0",
+          demo_url: DEMO,
+          checks: {
+            http_200: true,
+            no_console_errors: true,
+            lighthouse_perf: 90,
+          },
+        },
+        null,
+        2
+      )
+    );
+    mkdirSync(path.join(leadDir, "offer"), { recursive: true });
+    writeFileSync(
+      path.join(leadDir, "offer", "offer.json"),
+      JSON.stringify(
+        {
+          schema_version: "1.0",
+          message: "Короткое персональное предложение.",
+          usp: ["Демо"],
+          why_this_company: "Слабый CTA на сайте.",
+          links: {
+            demo: DEMO,
+            portfolio: DEMO,
+            audit_pdf: "offer/audit.pdf",
+          },
+        },
+        null,
+        2
+      )
+    );
+    writeFileSync(path.join(leadDir, "offer", "offer.md"), "# Offer\n\nТекст.\n");
+    writeFileSync(path.join(leadDir, "offer", "audit.pdf"), "%PDF-1.4");
+  }
+
+  it("skips when done, publish hash matches, and local offer artifacts valid", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-offer-"));
+    const leadId = "offer-skip";
+    writeValidOffer(leadDir);
+    const state = initState(leadId, "has_website");
+    state.stages.publish = {
+      status: "done",
+      hash: "pub-1",
+      artifact: "deploy.json",
+    };
+    state.stages.offer = {
+      status: "done",
+      hash: "pub-1",
+      artifact: "offer/offer.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.offer,
+        "pub-1",
+        false,
+        leadId,
+        leadDir,
+        "offer"
+      ),
+      true
+    );
+  });
+
+  it("does not skip when offer.md missing", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-offer-"));
+    const leadId = "offer-noskip";
+    writeValidOffer(leadDir);
+    writeFileSync(path.join(leadDir, "offer", "offer.md"), "");
+    const state = initState(leadId, "has_website");
+    state.stages.offer = {
+      status: "done",
+      hash: "pub-1",
+      artifact: "offer/offer.json",
+    };
+    assert.equal(
+      shouldSkip(
+        state.stages.offer,
+        "pub-1",
+        false,
+        leadId,
+        leadDir,
+        "offer"
+      ),
+      false
+    );
+  });
+
+  it("idempotent skip does not re-fetch", () => {
+    const leadDir = mkdtempSync(path.join(tmpdir(), "lg-state-offer-"));
+    const leadId = "offer-nofetch";
+    writeValidOffer(leadDir);
+    const state = initState(leadId, "has_website");
+    state.stages.offer = {
+      status: "done",
+      hash: "pub-1",
+      artifact: "offer/offer.json",
+    };
+
+    const originalFetch = globalThis.fetch;
+    let fetchCalls = 0;
+    globalThis.fetch = (async () => {
+      fetchCalls += 1;
+      throw new Error("shouldSkip(offer) must not fetch");
+    }) as typeof fetch;
+
+    try {
+      assert.equal(
+        shouldSkip(
+          state.stages.offer,
+          "pub-1",
+          false,
+          leadId,
+          leadDir,
+          "offer"
+        ),
+        true
+      );
+      assert.equal(fetchCalls, 0);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
 describe("migrateBranchState", () => {
   it("preserves done capture when branch changes", () => {
     const state = doneCaptureState("has_website");

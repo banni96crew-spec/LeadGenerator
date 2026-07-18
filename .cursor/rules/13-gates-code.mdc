@@ -30,9 +30,10 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
   - Screenshots exist, size > 5120 bytes, dimensions > 0.
   - `text.txt` length ≥ 200 characters.
 - **G5 implementation** (M4): `runGateG5` validates `deploy.json` schema, then requires full `checks` (`http_200`, `no_console_errors`, `lighthouse_perf >= LIGHTHOUSE_PERF_MIN`). Empty `checks: {}` → fail. **No** fetch, Playwright, or Lighthouse inside the gate — smoke (`src/steps/publish/smoke.ts`) owns those.
+- **G6 implementation** (M5): `runGateG6` (async) validates `offer.json` schema, requires non-empty `offer/offer.md`, `why_this_company`, message length ≤1500, code tone lint, then **`checkOfferLinks`** (`src/lib/linkCheck.ts`) for demo/portfolio HTTP 200 and local `offer/audit.pdf`. **Documented exception:** G6 may perform network via `checkOfferLinks` (fetch in lib, called from the gate). Playwright and Lighthouse remain forbidden in **all** gates. G1–G5 stay filesystem/artifact-only (no network in those gates).
 - **GateResult**: always `{ pass, gate, errors[], warnings? }`; errors human-readable with file paths.
 - **Diagnostics on fail**: include `lead_id`, `stage`, `gate`, artifact path, specific reason.
-- **No LLM in gates code** except future thin wrappers for G2/G4/G6 critic — not in Foundation.
+- **No LLM in gates code** except future thin wrappers for G2/G4/G6 critic — not in Foundation; M5 G6 tone is code lint (`offerToneLint.ts`).
 - **Orchestrator integration**: pipeline calls gate after stage; on `!pass` orchestrator handles retry counting.
 
 ## Forbidden behavior
@@ -40,14 +41,15 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
 - Do not advance pipeline from inside gate module.
 - Do not weaken G1 thresholds (5KB, 200 chars) without PRD update.
 - Do not skip schema validation before tech checks.
-- Do not import Playwright (or run network/Lighthouse) in gate modules — filesystem / artifact reads only (G1 files; G5 `deploy.json.checks`).
+- Do not import Playwright or run Lighthouse in any gate module. G1–G5: filesystem / artifact reads only (no network). **G6 exception:** may call `checkOfferLinks` (fetch in `src/lib/linkCheck.ts`) for offer link HTTP checks — not Playwright/Lighthouse.
 - Do not catch and swallow validation errors.
 
 ## Output requirements
 
 - `runGateG1` returns `pass: true` only when all G1 checks satisfied per `03-pipeline-gates`.
 - `runGateG5` returns `pass: true` only when `deploy.json.checks` meet G5 thresholds (smoke already ran).
-- Unit tests: happy path, empty screenshot, short text, invalid schema (when test scaffold exists); G5 empty checks fail.
+- `runGateG6` returns `pass: true` only when schema, offer.md, why/length/tone, and link checks pass.
+- Unit tests: happy path, empty screenshot, short text, invalid schema (when test scaffold exists); G5 empty checks fail; G6 mock fetch for links.
 
 ## Verification checklist
 
@@ -57,3 +59,4 @@ Editing `src/gates/` — schema validation helper and per-gate check modules.
 - [ ] Gate modules are read-only.
 - [ ] No LLM imports in `src/gates/`.
 - [ ] G5 has zero Playwright/network/Lighthouse imports; empty checks fail.
+- [ ] G6 may use `checkOfferLinks` fetch; no Playwright/Lighthouse in G6.

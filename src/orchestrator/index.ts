@@ -42,10 +42,10 @@ async function main(): Promise<void> {
   }
 
   console.error(
-    "Usage: npm run pipeline -- --data '{\"name\":\"...\",\"site\":\"...\"}' [--stage capture|audit|copy|design|publish] [--force]"
+    "Usage: npm run pipeline -- --data '{\"name\":\"...\",\"site\":\"...\"}' [--stage capture|audit|copy|design|publish|offer] [--force]"
   );
   console.error(
-    "   or: npm run pipeline -- --lead leads/domeo [--stage capture|audit|copy|design|publish] [--force]"
+    "   or: npm run pipeline -- --lead leads/domeo [--stage capture|audit|copy|design|publish|offer] [--force]"
   );
   process.exit(2);
 }

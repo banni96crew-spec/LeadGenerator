@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "title": "Демо: премиум-сайт для строительной компании",
+      "url": "https://g4-verify-construction.leadgenerator-7sp.pages.dev",
+      "summary": "Лендинг atrium-v1."
+    },
+    {
+      "title": "Cloudflare Pages",
+      "url": "https://developers.cloudflare.com/pages/",
+      "summary": "Документация хостинга демо."
+    }
+  ]
+}

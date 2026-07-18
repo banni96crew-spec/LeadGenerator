@@ -26,7 +26,7 @@ Editing `src/orchestrator/` — CLI entry, pipeline, state engine, lead resoluti
   - `routing.ts` — `decideBranch(lead)`: empty `site` → `no_website`; else `probeSite()` via `fetch` (timeout ~8s): HTTP 200, not parking domain, non-empty HTML → `has_website`.
   - `state.ts` — `initState`, `loadState`, `saveState` (validate `state.schema.json`), `updateStage`, `shouldSkip(hash, force)`.
   - `pipeline.ts` — state machine only: resolve → branch → run stage → gate → update state; no LLM, no content generation.
-- **Foundation + M2 + M3 + M4 scope**: implement `capture|audit|copy|design|publish` stages + G1–G5; research/offer remain later milestones. Publish = `runPublish` → `smokeTestUrl` → `runGateG5` (read-only); `PUBLISH_MAX_ATTEMPTS=2` full-cycle retries; `publish.hash === design.hash`.
+- **Foundation + M2 + M3 + M4 + M5 scope**: implement `capture|audit|copy|design|publish|offer` stages + G1–G6; Research remains a later milestone. Publish = `runPublish` → `smokeTestUrl` → `runGateG5` (read-only); `PUBLISH_MAX_ATTEMPTS=2` full-cycle retries; `publish.hash === design.hash`. Offer = `generateAuditPdf` → A1 await `offer/offer.json` **and** `offer/offer.md` (exit 3 if either missing) → `runGateG6`; `OFFER_MAX_ATTEMPTS=2` via CLI re-runs (no inner while-loop); `offer.hash === publish.hash`.
 - **Idempotency**: skip stage if input hash unchanged and artifact valid; `--force` bypasses skip but still runs gates.
 - **On gate fail**: retry per `03-pipeline-gates`, then `status: failed` + `error` in `state.json`; never set `done`.
 - **On `no_website`**: set `capture.status = skipped`, do not run Playwright.
@@ -39,7 +39,7 @@ Editing `src/orchestrator/` — CLI entry, pipeline, state engine, lead resoluti
 - Do not use LLM for routing or stage decisions.
 - Do not mutate `state.json` to `done` before gate pass.
 - Do not hardcode absolute paths — use `src/lib/paths.ts`.
-- Do not implement Research/Offer without explicit milestone request.
+- Do not implement Research without explicit milestone request.
 
 ## Output requirements
 
